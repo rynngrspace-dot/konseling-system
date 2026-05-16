@@ -1,4 +1,4 @@
-import { Compass, Lightbulb, Target, ArrowRight, Award } from "lucide-react";
+import { Compass, Lightbulb, Target, ArrowRight, Award, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function SiswaRekomendasiJurusanPage() {
@@ -11,15 +11,21 @@ export default function SiswaRekomendasiJurusanPage() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-linear-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none">
           <Compass className="h-64 w-64 -mt-10 -mr-10" />
         </div>
         
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
-            <Award className="h-4 w-4" />
-            Rekomendasi Utama
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider w-fit">
+              <Award className="h-4 w-4" />
+              Rekomendasi Utama
+            </div>
+            <div className="inline-flex items-center gap-2 text-blue-100 text-xs font-semibold bg-black/10 px-3 py-1.5 rounded-full backdrop-blur-sm w-fit">
+              <Calendar className="h-3.5 w-3.5" />
+              Diterbitkan: 24 Okt 2025
+            </div>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">SMA - MIPA</h2>

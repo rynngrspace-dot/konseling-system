@@ -29,7 +29,7 @@ export default function DataSiswaPage() {
             Kelola data induk siswa SMP Bina Karya Ngamprah.
           </p>
         </div>
-        <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-10 px-4 font-medium shadow-sm transition-all">
+        <Button className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white rounded-lg h-10 px-4 font-medium shadow-sm transition-all">
           <Plus className="mr-2 h-4 w-4" />
           Tambah Siswa
         </Button>

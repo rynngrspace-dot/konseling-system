@@ -56,21 +56,7 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Role badge */}
-      {!isCollapsed && (
-        <div className="px-4 pt-5 pb-2 animate-in-fade">
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm",
-              roleBadgeColor === "blue"
-                ? "bg-blue-50 text-blue-600 border border-blue-100"
-                : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-            )}
-          >
-            {roleLabel}
-          </span>
-        </div>
-      )}
+
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Sidebar navigation">
