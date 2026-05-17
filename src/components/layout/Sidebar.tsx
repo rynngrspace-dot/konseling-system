@@ -32,7 +32,7 @@ export function Sidebar({
     <aside
       data-collapsed={isCollapsed}
       className={cn(
-        "hidden md:flex h-full flex-col border-r border-border/50 bg-sidebar/50 backdrop-blur-md transition-all duration-300 ease-in-out shrink-0",
+        "hidden md:flex h-full flex-col border-r border-border/50 bg-sidebar/50 backdrop-blur-md transition-all duration-300 ease-in-out shrink-0 print:hidden",
         isCollapsed ? "w-[72px]" : "w-[260px]"
       )}
     >

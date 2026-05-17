@@ -33,7 +33,7 @@ export function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-50">
+    <div className="flex h-screen w-full overflow-hidden bg-slate-50 print:bg-white print:h-auto print:overflow-visible">
       {/* Sidebar Desktop */}
       <Sidebar 
         links={links} 
@@ -54,7 +54,7 @@ export function DashboardLayout({
       />
 
       {/* Main Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden print:overflow-visible print:h-auto print:w-full">
         <Navbar
           userName={session?.user?.name || "Pengguna"}
           role={role}
@@ -65,7 +65,7 @@ export function DashboardLayout({
           onLogout={handleLogout}
         />
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 print:p-0 print:overflow-visible print:h-auto">
           {children}
         </main>
       </div>

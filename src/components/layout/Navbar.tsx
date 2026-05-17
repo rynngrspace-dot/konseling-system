@@ -51,7 +51,7 @@ export function Navbar({
   const isAdmin = role === "bk";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 shrink-0">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 shrink-0 print:hidden">
       {/* ── Left Section ─────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger */}

@@ -191,3 +191,40 @@
     to { width: 0%; }
   }
 }
+
+@page {
+  size: A4 portrait;
+  margin: 0 !important;
+}
+
+@media print {
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 1.6cm !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  td, th {
+    word-wrap: break-word !important;
+    white-space: normal !important;
+  }
+}
