@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { 
   Search, 
-  Filter, 
   ChevronLeft, 
   ChevronRight, 
   BookOpen, 
@@ -16,12 +15,10 @@ import {
   Trash2, 
   X, 
   CheckCircle, 
-  AlertCircle,
-  Plus
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,8 +29,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { upsertNilai, deleteNilai } from "@/actions/nilai";
-import { NilaiAkademikRecord, SiswaWithNilai, NilaiClientProps } from "@/types";
+import { deleteNilai } from "@/actions/nilai";
+import { SiswaWithNilai, NilaiClientProps } from "@/types";
+
+export const SUBJECTS = [
+  { dbKey: "PAI", label: "PAI" },
+  { dbKey: "Indonesia", label: "B. Indo" },
+  { dbKey: "Matematika", label: "MTK" },
+  { dbKey: "Pendidikan Pancasila", label: "Pancasila" },
+  { dbKey: "IPS", label: "IPS" },
+  { dbKey: "IPA", label: "IPA" },
+  { dbKey: "Inggris", label: "B. Ing" },
+  { dbKey: "Informatika", label: "Informatika" },
+  { dbKey: "Sunda", label: "B. Sunda" },
+  { dbKey: "Penjaskes", label: "Penjaskes" },
+  { dbKey: "Prakarya", label: "Prakarya" }
+];
 
 // Helpers
 function getPredikat(score: number) {
@@ -115,7 +126,7 @@ export function NilaiClient({
       if (selectedSemester) params.set("semester", selectedSemester.toString());
       else params.delete("semester");
 
-      params.set("page", "1"); // Reset ke halaman 1 saat filter berubah
+      params.set("page", "1"); // Reset to page 1 on filter changes
       
       startTransition(() => {
         router.push(`?${params.toString()}`);
@@ -134,26 +145,25 @@ export function NilaiClient({
     });
   };
 
-  // Helper to extract student scores for a given semester
+  // Helper to extract student scores for a given semester dynamically
   const getStudentScores = (student: SiswaWithNilai, sem: number) => {
-    const mathRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Matematika");
-    const indonesianRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Bahasa Indonesia");
-    const englishRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Bahasa Inggris");
-    const scienceRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "IPA");
-    const socialRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "IPS");
+    const scores: Record<string, number | null> = {};
+    let filledCount = 0;
+    let sum = 0;
 
-    const math = mathRecord !== undefined ? mathRecord.nilai : null;
-    const indonesian = indonesianRecord !== undefined ? indonesianRecord.nilai : null;
-    const english = englishRecord !== undefined ? englishRecord.nilai : null;
-    const science = scienceRecord !== undefined ? scienceRecord.nilai : null;
-    const social = socialRecord !== undefined ? socialRecord.nilai : null;
+    SUBJECTS.forEach(subj => {
+      const rec = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === subj.dbKey);
+      if (rec !== undefined) {
+        scores[subj.dbKey] = rec.nilai;
+        filledCount++;
+        sum += rec.nilai;
+      } else {
+        scores[subj.dbKey] = null;
+      }
+    });
 
-    const list = [math, indonesian, english, science, social];
-    const filledList = list.filter((s): s is number => s !== null);
-    const filledCount = filledList.length;
-    const average = filledCount > 0 ? Number((filledList.reduce((a, b) => a + b, 0) / 5).toFixed(1)) : 0;
-
-    return { math, indonesian, english, science, social, average, isFilled: filledCount > 0 };
+    const average = filledCount > 0 ? Number((sum / filledCount).toFixed(1)) : 0;
+    return { scores, average, isFilled: filledCount > 0 };
   };
 
   // Form Status
@@ -203,7 +213,7 @@ export function NilaiClient({
     }
     
     // Find matching student
-    const match = students.find(s => 
+    const match = allStudents.find(s => 
       s.nama.toLowerCase().includes(val.toLowerCase()) || 
       s.nis.includes(val)
     );
@@ -224,19 +234,19 @@ export function NilaiClient({
               Pemantauan prestasi dan hasil evaluasi belajar siswa SMP Bina Karya Ngamprah.
             </p>
           </div>
-            <Button 
-              onClick={() => {
-                if (allStudents.length > 0) {
-                  router.push("/dashboard/bk/nilai-akademik/create");
-                } else {
-                  showToast("Daftarkan siswa terlebih dahulu di menu Data Siswa!", "error");
-                }
-              }}
-              className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
-            >
-              <BookOpen className="h-4 w-4" />
-              Input Nilai Rapor
-            </Button>
+          <Button 
+            onClick={() => {
+              if (allStudents.length > 0) {
+                router.push(`/dashboard/bk/nilai-akademik/create?semester=${selectedSemester}`);
+              } else {
+                showToast("Daftarkan siswa terlebih dahulu di menu Data Siswa!", "error");
+              }
+            }}
+            className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            Input Nilai Rapor
+          </Button>
         </div>
 
         <Tabs defaultValue="rekap" className="w-full">
@@ -307,31 +317,34 @@ export function NilaiClient({
 
             <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden transition-all duration-300">
               <div className="overflow-x-auto">
-                <Table>
+                <Table className="min-w-[1400px]">
                   <TableHeader className="bg-slate-50/70 border-b border-slate-100">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider h-12 px-6 w-16 text-center">No</TableHead>
                       <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider h-12 px-6">Siswa</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">MTK</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">B. Indo</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">B. Ing</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">IPA</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">IPS</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">Rata-rata</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">Status</TableHead>
-                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6">Aksi</TableHead>
+                      
+                      {/* Dynamic 11 Subjects Columns */}
+                      {SUBJECTS.map(subj => (
+                        <TableHead key={subj.dbKey} className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-4 w-24">
+                          {subj.label}
+                        </TableHead>
+                      ))}
+
+                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6 w-28">Rata-rata</TableHead>
+                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6 w-28">Status</TableHead>
+                      <TableHead className="font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center h-12 px-6 w-24">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-slate-100">
                     {students.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center py-12 text-slate-400 font-medium">
+                        <TableCell colSpan={SUBJECTS.length + 5} className="text-center py-12 text-slate-400 font-medium">
                           Data siswa atau nilai tidak ditemukan.
                         </TableCell>
                       </TableRow>
                     ) : (
                       students.map((student, index) => {
-                        const scores = getStudentScores(student, selectedSemester);
+                        const scoresData = getStudentScores(student, selectedSemester);
                         const listIndex = startIdx + index;
                         return (
                           <TableRow key={student.id} className="hover:bg-slate-50/50 transition-colors border-none group">
@@ -339,28 +352,24 @@ export function NilaiClient({
                             <TableCell className="px-6 py-4">
                               <div className="text-sm font-bold text-slate-800 leading-tight">{student.nama}</div>
                               <div className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-wider">
-                                NIS: {student.nis} • Kelas {student.kelas}
+                                NIS: {student.nis} • Kelas {student.kelas || "-"}
                               </div>
                             </TableCell>
-                            <TableCell className="text-center text-xs font-bold text-slate-600 px-6 py-4">
-                              {scores.math !== null ? scores.math : "-"}
-                            </TableCell>
-                            <TableCell className="text-center text-xs font-bold text-slate-600 px-6 py-4">
-                              {scores.indonesian !== null ? scores.indonesian : "-"}
-                            </TableCell>
-                            <TableCell className="text-center text-xs font-bold text-slate-600 px-6 py-4">
-                              {scores.english !== null ? scores.english : "-"}
-                            </TableCell>
-                            <TableCell className="text-center text-xs font-bold text-slate-600 px-6 py-4">
-                              {scores.science !== null ? scores.science : "-"}
-                            </TableCell>
-                            <TableCell className="text-center text-xs font-bold text-slate-600 px-6 py-4">
-                              {scores.social !== null ? scores.social : "-"}
-                            </TableCell>
+
+                            {/* Dynamic 11 Subjects Values */}
+                            {SUBJECTS.map(subj => {
+                              const val = scoresData.scores[subj.dbKey];
+                              return (
+                                <td key={subj.dbKey} className="text-center text-xs font-bold text-slate-600 px-4 py-4">
+                                  {val !== null ? val : "-"}
+                                </td>
+                              );
+                            })}
+
                             <TableCell className="text-center px-6 py-4">
-                              {scores.isFilled ? (
+                              {scoresData.isFilled ? (
                                 <span className="font-extrabold text-[11px] text-blue-700 bg-blue-50/80 px-2.5 py-1 rounded-md border border-blue-100/50">
-                                  {scores.average}
+                                  {scoresData.average}
                                 </span>
                               ) : (
                                 <span className="text-slate-400 text-xs font-semibold">-</span>
@@ -368,7 +377,7 @@ export function NilaiClient({
                             </TableCell>
                             <TableCell className="px-6 py-4">
                               <div className="flex justify-center">
-                                {scores.isFilled ? (
+                                {scoresData.isFilled ? (
                                   <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/60">
                                     Sudah Diisi
                                   </span>
@@ -390,7 +399,7 @@ export function NilaiClient({
                                 >
                                   <Edit className="h-3.5 w-3.5" />
                                 </Button>
-                                {scores.isFilled && (
+                                {scoresData.isFilled && (
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
@@ -458,10 +467,10 @@ export function NilaiClient({
           {/* TAB 2: RAPOR INDIVIDU */}
           <TabsContent value="individu" className="space-y-6 animate-in-fade">
             {/* Search Box */}
-            <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md">
+            <Card className="border border-slate-200/60 shadow-xs rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md">
               <CardHeader className="pb-4">
-                <CardTitle className="text-base font-bold text-slate-800">Cari Data Siswa</CardTitle>
-                <CardDescription className="text-slate-500 text-xs font-medium">Masukkan nama atau NIS siswa untuk melihat detail rapor nilai akademik seluruh semester.</CardDescription>
+                <CardTitle className="text-base font-extrabold text-slate-800">Cari Data Siswa</CardTitle>
+                <CardDescription className="text-slate-500 text-xs font-semibold">Masukkan nama atau NIS siswa untuk melihat detail rapor nilai akademik seluruh semester.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="relative w-full max-w-xl">
@@ -470,7 +479,7 @@ export function NilaiClient({
                     placeholder="Masukkan nama siswa (contoh: Andi)..." 
                     value={individualSearch}
                     onChange={(e) => handleIndividualSearchChange(e.target.value)}
-                    className="pl-11 h-12 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-lg text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus:bg-white transition-all"
+                    className="pl-11 h-12 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-lg text-xs shadow-none focus-visible:outline-none focus-visible:ring-0 focus:bg-white transition-all"
                   />
                 </div>
               </CardContent>
@@ -482,43 +491,43 @@ export function NilaiClient({
                 <div className="h-16 w-16 bg-blue-50/50 border border-blue-100/50 rounded-full flex items-center justify-center mb-4">
                   <Search className="h-7 w-7 text-blue-500" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-800">Mulai Pencarian Rapor</h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs font-semibold">Ketikkan nama atau NIS pada kolom pencarian di atas untuk menampilkan detail nilai akademik secara terperinci.</p>
+                <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Mulai Pencarian Rapor</h3>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-xs font-semibold leading-relaxed">Ketikkan nama atau NIS pada kolom pencarian di atas untuk menampilkan detail nilai akademik secara terperinci.</p>
               </div>
             ) : !viewedStudent ? (
               <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/30">
                 <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <GraduationCap className="h-7 w-7 text-slate-400" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-700">Siswa Tidak Ditemukan</h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs font-semibold">Pastikan ejaan nama atau nomor induk siswa (NIS) sudah sesuai.</p>
+                <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Siswa Tidak Ditemukan</h3>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-xs font-semibold leading-relaxed">Pastikan ejaan nama atau nomor induk siswa (NIS) sudah sesuai.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in-fade">
                 {/* Profile Card */}
-                <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white md:col-span-1 h-fit">
+                <Card className="border border-slate-200/60 shadow-xs rounded-2xl overflow-hidden bg-white md:col-span-1 h-fit">
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
                       <div className="h-20 w-20 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100/40 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-extrabold mb-4 shadow-xs">
                         {viewedStudent.nama.charAt(0)}
                       </div>
                       <h2 className="text-base font-bold text-slate-800 leading-tight">{viewedStudent.nama}</h2>
-                      <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-wider">NIS: {viewedStudent.nis}</p>
+                      <p className="text-slate-400 text-[10px] font-extrabold mt-1 uppercase tracking-wider">NIS: {viewedStudent.nis}</p>
                       
                       <div className="grid grid-cols-2 w-full gap-2 border-t border-slate-100 mt-5 pt-4">
                         <div className="flex flex-col items-center p-2 bg-slate-50/50 rounded-xl border border-slate-100">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Kelas</span>
-                          <span className="font-extrabold text-sm text-slate-700">{viewedStudent.kelas}</span>
+                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">Kelas</span>
+                          <span className="font-extrabold text-xs text-slate-700">{viewedStudent.kelas || "-"}</span>
                         </div>
                         <div className="flex flex-col items-center p-2 bg-blue-50/30 rounded-xl border border-blue-100/20">
-                          <span className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mb-1">Semester</span>
-                          <span className="font-extrabold text-sm text-blue-700">{selectedSemester}</span>
+                          <span className="text-[9px] text-blue-500 font-bold uppercase tracking-wider mb-1">Semester</span>
+                          <span className="font-extrabold text-xs text-blue-700">{selectedSemester}</span>
                         </div>
                       </div>
 
                       {/* Average Score Badge */}
                       <div className="w-full mt-3 p-3 bg-slate-50/80 border border-slate-100 rounded-xl flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500">RATA-RATA RAPOR:</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">RATA-RATA RAPOR:</span>
                         <span className="font-extrabold text-sm text-blue-600">
                           {getStudentScores(viewedStudent, selectedSemester).average}
                         </span>
@@ -528,7 +537,7 @@ export function NilaiClient({
                 </Card>
 
                 {/* Grades Table */}
-                <Card className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white md:col-span-2">
+                <Card className="border border-slate-200/60 shadow-xs rounded-2xl overflow-hidden bg-white md:col-span-2">
                   <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4">
                     <div className="flex items-center gap-2">
                       <Award className="h-5 w-5 text-blue-600" />
@@ -546,30 +555,27 @@ export function NilaiClient({
                       </TableHeader>
                       <TableBody className="divide-y divide-slate-50">
                         {(() => {
-                          const scores = getStudentScores(viewedStudent, selectedSemester);
-                          return [
-                            { name: "Matematika", score: scores.math },
-                            { name: "Bahasa Indonesia", score: scores.indonesian },
-                            { name: "Bahasa Inggris", score: scores.english },
-                            { name: "Ilmu Pengetahuan Alam (IPA)", score: scores.science },
-                            { name: "Ilmu Pengetahuan Sosial (IPS)", score: scores.social },
-                          ].map((subject, idx) => (
-                            <TableRow key={idx} className="hover:bg-slate-50/30 transition-colors border-none">
-                              <TableCell className="font-bold text-slate-700 px-6 py-4 text-xs">{subject.name}</TableCell>
-                              <TableCell className="text-center font-extrabold text-slate-800 text-xs py-4">
-                                {subject.score !== null ? subject.score : "-"}
-                              </TableCell>
-                              <TableCell className="text-center py-4">
-                                {subject.score !== null ? (
-                                  <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${getGradeColor(getPredikat(subject.score))}`}>
-                                    {getPredikat(subject.score)}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 font-bold text-xs">-</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ));
+                          const scoreObj = getStudentScores(viewedStudent, selectedSemester);
+                          return SUBJECTS.map((subject, idx) => {
+                            const val = scoreObj.scores[subject.dbKey];
+                            return (
+                              <TableRow key={idx} className="hover:bg-slate-50/30 transition-colors border-none">
+                                <TableCell className="font-bold text-slate-700 px-6 py-4 text-xs">{subject.label}</TableCell>
+                                <TableCell className="text-center font-extrabold text-slate-800 text-xs py-4">
+                                  {val !== null ? val : "-"}
+                                </TableCell>
+                                <TableCell className="text-center py-4">
+                                  {val !== null ? (
+                                    <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-bold border ${getGradeColor(getPredikat(val))}`}>
+                                      {getPredikat(val)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 font-bold text-xs">-</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          });
                         })()}
                       </TableBody>
                     </Table>
@@ -590,8 +596,8 @@ export function NilaiClient({
                 <Trash2 className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-800">Hapus Nilai Rapor</h3>
-                <p className="text-slate-500 text-xs font-semibold px-4">
+                <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-800">Hapus Nilai Rapor</h3>
+                <p className="text-slate-500 text-[11px] font-semibold px-4 leading-relaxed mt-1">
                   Apakah Anda yakin ingin menghapus seluruh nilai akademik <strong>{selectedStudent.nama}</strong> untuk <strong>Semester {selectedSemester}</strong>? Tindakan ini bersifat permanen.
                 </p>
               </div>
@@ -606,14 +612,14 @@ export function NilaiClient({
                 type="button" 
                 variant="outline" 
                 onClick={() => setIsDeleteOpen(false)}
-                className="rounded-lg h-9 text-slate-600 shadow-none hover:bg-slate-100 cursor-pointer w-24"
+                className="rounded-lg h-9 text-slate-600 shadow-none hover:bg-slate-100 cursor-pointer w-24 text-xs font-bold"
               >
                 Batal
               </Button>
               <Button 
                 onClick={handleDeleteSubmit}
                 disabled={formLoading}
-                className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 cursor-pointer w-24"
+                className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 cursor-pointer w-24 text-xs font-bold"
               >
                 {formLoading ? "Menghapus..." : "Hapus"}
               </Button>
@@ -622,41 +628,23 @@ export function NilaiClient({
         </div>
       )}
 
-      {/* Toast Notification - Rendered via React Portal in document.body to fully escape layout containers */}
+      {/* Toast Notification - Rendered via React Portal in document.body */}
       {mounted && toast && createPortal(
-        <div 
-          className="fixed top-6 right-6 z-[100] max-w-sm w-full bg-white/95 backdrop-blur-md border border-slate-100 shadow-2xl rounded-2xl p-4 flex items-center gap-3.5 text-slate-800 animate-toast-in relative overflow-hidden"
-          style={{ top: '24px', right: '24px', bottom: 'auto', left: 'auto', position: 'fixed' }}
-        >
-          <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border ${
-            toast.type === "success" 
-              ? "bg-emerald-50 text-emerald-600 border-emerald-100/50 shadow-xs" 
-              : "bg-red-50 text-red-600 border-red-100/50 shadow-xs"
-          }`}>
-            {toast.type === "success" && <CheckCircle className="h-5 w-5 stroke-[2.5]" />}
-            {toast.type === "error" && <AlertCircle className="h-5 w-5 stroke-[2.5]" />}
+        <div className="fixed top-5 right-5 z-[9999] flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-100 shadow-xl px-5 py-4 rounded-2xl animate-toast-slide min-w-[320px]">
+          {toast.type === "success" ? (
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100/50 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+          ) : (
+            <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-100/50 flex items-center justify-center text-rose-500 shrink-0">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+          )}
+          <div className="flex-1">
+            <h4 className="text-xs font-bold text-slate-800">Evaluasi Belajar</h4>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{toast.message}</p>
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-slate-800 leading-tight">
-              {toast.type === "success" ? "Berhasil!" : "Gagal!"}
-            </h4>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5 leading-snug">
-              {toast.message}
-            </p>
-          </div>
-          
-          <button 
-            onClick={() => setToast(null)}
-            className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          
-          {/* Progress bar */}
-          <div className={`absolute bottom-0 left-0 h-[3px] animate-toast-progress ${
-            toast.type === "success" ? "bg-emerald-500" : "bg-red-500"
-          }`} />
+          <div className="absolute bottom-0 left-0 h-1 bg-blue-500 rounded-b-2xl animate-toast-timer" />
         </div>,
         document.body
       )}

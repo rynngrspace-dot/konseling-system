@@ -22,6 +22,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { upsertNilai, bulkUpsertNilai } from "@/actions/nilai";
 import { SiswaWithNilai } from "@/types";
 
+export const SUBJECTS = [
+  { dbKey: "PAI", label: "PAI" },
+  { dbKey: "Indonesia", label: "B. Indonesia" },
+  { dbKey: "Matematika", label: "Matematika" },
+  { dbKey: "Pendidikan Pancasila", label: "Pancasila" },
+  { dbKey: "IPS", label: "IPS" },
+  { dbKey: "IPA", label: "IPA" },
+  { dbKey: "Inggris", label: "B. Inggris" },
+  { dbKey: "Informatika", label: "Informatika" },
+  { dbKey: "Sunda", label: "B. Sunda" },
+  { dbKey: "Penjaskes", label: "Penjaskes" },
+  { dbKey: "Prakarya", label: "Prakarya" }
+];
+
 // Helpers
 function getPredikat(score: number) {
   if (score >= 90) return "A";
@@ -72,21 +86,11 @@ export function NilaiConsole({
   const [formError, setFormError] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  // Score states for single mode
-  const [math, setMath] = useState("");
-  const [indonesian, setIndonesian] = useState("");
-  const [english, setEnglish] = useState("");
-  const [science, setScience] = useState("");
-  const [social, setSocial] = useState("");
+  // Dynamic scores state for single mode (dbKey -> scoreString)
+  const [singleScores, setSingleScores] = useState<Record<string, string>>({});
 
-  // Scores state for class mode
-  const [classScores, setClassScores] = useState<Record<string, {
-    math: string;
-    indonesian: string;
-    english: string;
-    science: string;
-    social: string;
-  }>>({});
+  // Dynamic scores state for class mode (studentId -> dbKey -> scoreString)
+  const [classScores, setClassScores] = useState<Record<string, Record<string, string>>>({});
 
   const currentStudent = allStudents.find(s => s.id === selectedSiswaId);
   const classStudents = allStudents.filter(s => s.kelas === selectedKelas);
@@ -97,17 +101,12 @@ export function NilaiConsole({
 
   // Helper to extract student scores for a given semester
   const loadStudentScores = (student: SiswaWithNilai, sem: number) => {
-    const mathRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Matematika");
-    const indonesianRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Bahasa Indonesia");
-    const englishRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "Bahasa Inggris");
-    const scienceRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "IPA");
-    const socialRecord = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === "IPS");
-
-    setMath(mathRecord !== undefined ? mathRecord.nilai.toString() : "");
-    setIndonesian(indonesianRecord !== undefined ? indonesianRecord.nilai.toString() : "");
-    setEnglish(englishRecord !== undefined ? englishRecord.nilai.toString() : "");
-    setScience(scienceRecord !== undefined ? scienceRecord.nilai.toString() : "");
-    setSocial(socialRecord !== undefined ? socialRecord.nilai.toString() : "");
+    const loaded: Record<string, string> = {};
+    SUBJECTS.forEach(subj => {
+      const rec = student.nilaiAkademik.find(n => n.semester === sem && n.mata_pelajaran === subj.dbKey);
+      loaded[subj.dbKey] = rec !== undefined ? rec.nilai.toString() : "";
+    });
+    setSingleScores(loaded);
   };
 
   // Load scores when student or semester changes
@@ -115,11 +114,9 @@ export function NilaiConsole({
     if (currentStudent) {
       loadStudentScores(currentStudent, semester);
     } else {
-      setMath("");
-      setIndonesian("");
-      setEnglish("");
-      setScience("");
-      setSocial("");
+      const empty: Record<string, string> = {};
+      SUBJECTS.forEach(subj => { empty[subj.dbKey] = ""; });
+      setSingleScores(empty);
     }
     setFormError("");
   }, [selectedSiswaId, semester]);
@@ -127,38 +124,28 @@ export function NilaiConsole({
   // Load scores for all students in class mode when class or semester changes
   useEffect(() => {
     if (entryMode === "class" && selectedKelas) {
-      const initialScores: typeof classScores = {};
+      const loadedClass: Record<string, Record<string, string>> = {};
       const filtered = allStudents.filter(s => s.kelas === selectedKelas);
       filtered.forEach(s => {
-        const mathRecord = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === "Matematika");
-        const indonesianRecord = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === "Bahasa Indonesia");
-        const englishRecord = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === "Bahasa Inggris");
-        const scienceRecord = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === "IPA");
-        const socialRecord = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === "IPS");
-
-        initialScores[s.id] = {
-          math: mathRecord !== undefined ? mathRecord.nilai.toString() : "",
-          indonesian: indonesianRecord !== undefined ? indonesianRecord.nilai.toString() : "",
-          english: englishRecord !== undefined ? englishRecord.nilai.toString() : "",
-          science: scienceRecord !== undefined ? scienceRecord.nilai.toString() : "",
-          social: socialRecord !== undefined ? socialRecord.nilai.toString() : "",
-        };
+        loadedClass[s.id] = {};
+        SUBJECTS.forEach(subj => {
+          const rec = s.nilaiAkademik.find(n => n.semester === semester && n.mata_pelajaran === subj.dbKey);
+          loadedClass[s.id][subj.dbKey] = rec !== undefined ? rec.nilai.toString() : "";
+        });
       });
-      setClassScores(initialScores);
+      setClassScores(loadedClass);
     }
     setFormError("");
   }, [selectedKelas, semester, entryMode, allStudents]);
 
   // Live calculated average for single mode
-  const mathVal = math.trim() === "" ? null : parseFloat(math);
-  const indonesianVal = indonesian.trim() === "" ? null : parseFloat(indonesian);
-  const englishVal = english.trim() === "" ? null : parseFloat(english);
-  const scienceVal = science.trim() === "" ? null : parseFloat(science);
-  const socialVal = social.trim() === "" ? null : parseFloat(social);
-
-  const filledScores = [mathVal, indonesianVal, englishVal, scienceVal, socialVal].filter((v): v is number => v !== null);
+  const parsedScores = SUBJECTS.map(subj => {
+    const val = singleScores[subj.dbKey] || "";
+    return val.trim() === "" ? null : parseFloat(val);
+  });
+  const filledScores = parsedScores.filter((v): v is number => v !== null);
   const hasFilledScores = filledScores.length > 0;
-  const rawAverage = hasFilledScores ? (filledScores.reduce((a, b) => a + b, 0) / 5) : 0;
+  const rawAverage = hasFilledScores ? (filledScores.reduce((a, b) => a + b, 0) / filledScores.length) : 0;
   const average = Number(rawAverage.toFixed(1));
 
   // Show Toast helper
@@ -184,23 +171,29 @@ export function NilaiConsole({
     setFormError("");
     setFormLoading(true);
 
-    const scores = {
-      matematika: math.trim() === "" ? null : parseFloat(math),
-      indonesian: indonesian.trim() === "" ? null : parseFloat(indonesian),
-      english: english.trim() === "" ? null : parseFloat(english),
-      science: science.trim() === "" ? null : parseFloat(science),
-      social: social.trim() === "" ? null : parseFloat(social),
-    };
+    const payload: Record<string, number | null> = {};
+    let hasInvalidRange = false;
 
-    // Score range validation
-    const checkedValues = Object.values(scores).filter((v): v is number => v !== null);
-    if (checkedValues.some(v => v < 0 || v > 100)) {
+    SUBJECTS.forEach(subj => {
+      const val = singleScores[subj.dbKey] || "";
+      if (val.trim() === "") {
+        payload[subj.dbKey] = null;
+      } else {
+        const num = parseFloat(val);
+        if (num < 0 || num > 100) {
+          hasInvalidRange = true;
+        }
+        payload[subj.dbKey] = num;
+      }
+    });
+
+    if (hasInvalidRange) {
       setFormError("Rentang nilai harus berkisar dari 0 sampai 100!");
       setFormLoading(false);
       return;
     }
 
-    const res = await upsertNilai(selectedSiswaId, semester, scores);
+    const res = await upsertNilai(selectedSiswaId, semester, payload);
     setFormLoading(false);
 
     if (res.error) {
@@ -226,29 +219,36 @@ export function NilaiConsole({
     setFormError("");
     setFormLoading(true);
 
+    let hasInvalidRange = false;
+
     const updates = classStudents.map(student => {
-      const sScores = classScores[student.id] || { math: "", indonesian: "", english: "", science: "", social: "" };
+      const sScores = classScores[student.id] || {};
+      const payload: Record<string, number | null> = {};
+
+      SUBJECTS.forEach(subj => {
+        const val = sScores[subj.dbKey] || "";
+        if (val.trim() === "") {
+          payload[subj.dbKey] = null;
+        } else {
+          const num = parseFloat(val);
+          if (num < 0 || num > 100) {
+            hasInvalidRange = true;
+          }
+          payload[subj.dbKey] = num;
+        }
+      });
+
       return {
         siswaId: student.id,
         semester,
-        scores: {
-          matematika: sScores.math.trim() === "" ? null : parseFloat(sScores.math),
-          indonesian: sScores.indonesian.trim() === "" ? null : parseFloat(sScores.indonesian),
-          english: sScores.english.trim() === "" ? null : parseFloat(sScores.english),
-          science: sScores.science.trim() === "" ? null : parseFloat(sScores.science),
-          social: sScores.social.trim() === "" ? null : parseFloat(sScores.social),
-        }
+        scores: payload,
       };
     });
 
-    // Score range validation
-    for (const update of updates) {
-      const vals = Object.values(update.scores).filter((v): v is number => v !== null);
-      if (vals.some(v => v < 0 || v > 100)) {
-         setFormError("Rentang nilai seluruh siswa harus berkisar dari 0 sampai 100!");
-         setFormLoading(false);
-         return;
-      }
+    if (hasInvalidRange) {
+      setFormError("Rentang nilai seluruh siswa harus berkisar dari 0 sampai 100!");
+      setFormLoading(false);
+      return;
     }
 
     const res = await bulkUpsertNilai(updates);
@@ -266,12 +266,19 @@ export function NilaiConsole({
     }
   };
 
-  const handleClassScoreChange = (siswaId: string, field: "math" | "indonesian" | "english" | "science" | "social", val: string) => {
+  const handleScoreChange = (dbKey: string, val: string) => {
+    setSingleScores(prev => ({
+      ...prev,
+      [dbKey]: val
+    }));
+  };
+
+  const handleClassScoreChange = (studentId: string, dbKey: string, val: string) => {
     setClassScores(prev => ({
       ...prev,
-      [siswaId]: {
-        ...(prev[siswaId] || { math: "", indonesian: "", english: "", science: "", social: "" }),
-        [field]: val
+      [studentId]: {
+        ...(prev[studentId] || {}),
+        [dbKey]: val
       }
     }));
   };
@@ -383,7 +390,7 @@ export function NilaiConsole({
                       <option value="" disabled>-- Pilih Siswa Aktif --</option>
                       {allStudents.map(s => (
                         <option key={s.id} value={s.id}>
-                          {s.nama} ({s.nis}) - Kelas {s.kelas}
+                          {s.nama} ({s.nis}) - Kelas {s.kelas || "-"}
                         </option>
                       ))}
                     </select>
@@ -410,137 +417,46 @@ export function NilaiConsole({
                   {currentStudent && (
                     <div className="md:col-span-2 pt-3 border-t border-slate-200/40 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       <span>Nama: <strong className="text-slate-600">{currentStudent.nama}</strong></span>
-                      <span>NIS: <strong className="text-slate-600">{currentStudent.nis}</strong> • Kelas: <strong className="text-slate-600">{currentStudent.kelas}</strong></span>
+                      <span>NIS: <strong className="text-slate-600">{currentStudent.nis}</strong> • Kelas: <strong className="text-slate-600">{currentStudent.kelas || "-"}</strong></span>
                     </div>
                   )}
                 </div>
 
-                {/* Input Nilai Mata Pelajaran (Spreadsheet-like Horizontal Layout) */}
+                {/* Input Nilai Mata Pelajaran (Dynamic Grid for 11 Subjects) */}
                 <div className="space-y-4 pt-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block pb-1 border-b border-slate-100">
                     Nilai Mata Pelajaran (Rentang 0 - 100)
                   </span>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {/* Matematika */}
-                    <div className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between">
-                      <div className="flex flex-col gap-1">
-                        <Label htmlFor="math" className="text-xs font-bold text-slate-600 block">Matematika</Label>
-                        <Input
-                          id="math"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="any"
-                          placeholder="0.00"
-                          value={math}
-                          onChange={(e) => setMath(e.target.value)}
-                          disabled={!selectedSiswaId}
-                          className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1"
-                        />
-                      </div>
-                      {mathVal !== null && (
-                        <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(mathVal))}`}>
-                          Predikat {getPredikat(mathVal)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Bahasa Indonesia */}
-                    <div className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between">
-                      <div className="flex flex-col gap-1">
-                        <Label htmlFor="indonesian" className="text-xs font-bold text-slate-600 block">B. Indonesia</Label>
-                        <Input
-                          id="indonesian"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="any"
-                          placeholder="0.00"
-                          value={indonesian}
-                          onChange={(e) => setIndonesian(e.target.value)}
-                          disabled={!selectedSiswaId}
-                          className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1"
-                        />
-                      </div>
-                      {indonesianVal !== null && (
-                        <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(indonesianVal))}`}>
-                          Predikat {getPredikat(indonesianVal)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Bahasa Inggris */}
-                    <div className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between">
-                      <div className="flex flex-col gap-1">
-                        <Label htmlFor="english" className="text-xs font-bold text-slate-600 block">B. Inggris</Label>
-                        <Input
-                          id="english"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="any"
-                          placeholder="0.00"
-                          value={english}
-                          onChange={(e) => setEnglish(e.target.value)}
-                          disabled={!selectedSiswaId}
-                          className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1"
-                        />
-                      </div>
-                      {englishVal !== null && (
-                        <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(englishVal))}`}>
-                          Predikat {getPredikat(englishVal)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* IPA */}
-                    <div className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between">
-                      <div className="flex flex-col gap-1">
-                        <Label htmlFor="science" className="text-xs font-bold text-slate-600 block">IPA</Label>
-                        <Input
-                          id="science"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="any"
-                          placeholder="0.00"
-                          value={science}
-                          onChange={(e) => setScience(e.target.value)}
-                          disabled={!selectedSiswaId}
-                          className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1"
-                        />
-                      </div>
-                      {scienceVal !== null && (
-                        <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(scienceVal))}`}>
-                          Predikat {getPredikat(scienceVal)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* IPS */}
-                    <div className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between col-span-2 md:col-span-1">
-                      <div className="flex flex-col gap-1">
-                        <Label htmlFor="social" className="text-xs font-bold text-slate-600 block">IPS</Label>
-                        <Input
-                          id="social"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="any"
-                          placeholder="0.00"
-                          value={social}
-                          onChange={(e) => setSocial(e.target.value)}
-                          disabled={!selectedSiswaId}
-                          className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1"
-                        />
-                      </div>
-                      {socialVal !== null && (
-                        <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(socialVal))}`}>
-                          Predikat {getPredikat(socialVal)}
-                        </span>
-                      )}
-                    </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {SUBJECTS.map((subj) => {
+                      const scoreStr = singleScores[subj.dbKey] || "";
+                      const valNum = scoreStr.trim() === "" ? null : parseFloat(scoreStr);
+                      return (
+                        <div key={subj.dbKey} className="space-y-1.5 p-3 rounded-xl border border-slate-100 hover:border-slate-200/80 hover:bg-slate-50/20 transition-all flex flex-col justify-between">
+                          <div className="flex flex-col gap-1">
+                            <Label htmlFor={subj.dbKey} className="text-xs font-bold text-slate-600 block">{subj.label}</Label>
+                            <Input
+                              id={subj.dbKey}
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="any"
+                              placeholder="0.00"
+                              value={scoreStr}
+                              onChange={(e) => handleScoreChange(subj.dbKey, e.target.value)}
+                              disabled={!selectedSiswaId}
+                              className="h-10 px-3 bg-slate-50/50 focus:bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none font-bold disabled:opacity-50 mt-1 shadow-none"
+                            />
+                          </div>
+                          {valNum !== null && (
+                            <span className={`px-2 py-0.5 mt-1 text-[9px] font-bold border rounded-md text-center ${getGradeColor(getPredikat(valNum))}`}>
+                              Predikat {getPredikat(valNum)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -600,8 +516,7 @@ export function NilaiConsole({
                       id="class-select"
                       value={selectedKelas}
                       onChange={(e) => setSelectedKelas(e.target.value)}
-                      required
-                      className="h-11 w-full px-4 bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg text-xs outline-none cursor-pointer font-bold text-slate-700 transition-all"
+                      className="h-11 w-full px-4 bg-white border border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none cursor-pointer font-bold text-slate-700 hover:border-slate-300 transition-colors"
                     >
                       {classes.map(k => (
                         <option key={k} value={k}>Kelas {k}</option>
@@ -617,8 +532,7 @@ export function NilaiConsole({
                       id="class-semester-select"
                       value={semester}
                       onChange={(e) => setSemester(parseInt(e.target.value))}
-                      required
-                      className="h-11 w-full px-4 bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg text-xs outline-none cursor-pointer font-bold text-slate-700 transition-all"
+                      className="h-11 w-full px-4 bg-white border border-slate-200 focus:border-blue-500 rounded-lg text-xs outline-none cursor-pointer font-bold text-slate-700 hover:border-slate-300 transition-colors"
                     >
                       {[1, 2, 3, 4, 5, 6].map(s => (
                         <option key={s} value={s}>Semester {s}</option>
@@ -626,135 +540,86 @@ export function NilaiConsole({
                     </select>
                   </div>
 
-                  {/* Instant Student Filter Search */}
                   <div className="relative">
-                    <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      type="text"
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input 
                       placeholder="Cari siswa di kelas..."
                       value={classSearchQuery}
                       onChange={(e) => setClassSearchQuery(e.target.value)}
-                      className="h-11 pl-10 pr-4 bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-semibold outline-none"
+                      className="pl-9 h-11 bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-semibold shadow-none"
                     />
                   </div>
                 </div>
 
-                {/* Spreadsheet bulk table container */}
-                <div className="border border-slate-200/60 rounded-2xl overflow-hidden shadow-inner bg-slate-50/20">
+                {/* Batch Spreadsheet Table (Dynamic for 11 subjects) */}
+                <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+                    <table className="w-full min-w-[1400px] border-collapse text-left">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                          <th className="px-5 py-4 text-center w-12">No</th>
-                          <th className="px-5 py-4 min-w-[200px]">Siswa</th>
-                          <th className="px-4 py-4 text-center">Matematika</th>
-                          <th className="px-4 py-4 text-center">B. Indonesia</th>
-                          <th className="px-4 py-4 text-center">B. Inggris</th>
-                          <th className="px-4 py-4 text-center">IPA</th>
-                          <th className="px-4 py-4 text-center">IPS</th>
-                          <th className="px-5 py-4 text-center w-24">Rata-rata</th>
-                          <th className="px-5 py-4 text-center w-20">Predikat</th>
+                        <tr className="bg-slate-50/70 border-b border-slate-200/60">
+                          <th className="px-5 py-4 text-center font-bold text-slate-500 text-[10px] uppercase tracking-wider w-16">No</th>
+                          <th className="px-5 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider w-56">Siswa</th>
+                          
+                          {/* 11 Subjects Column Headers */}
+                          {SUBJECTS.map(subj => (
+                            <th key={subj.dbKey} className="px-4 py-4 text-center font-bold text-slate-500 text-[10px] uppercase tracking-wider w-24">
+                              {subj.label}
+                            </th>
+                          ))}
+
+                          <th className="px-5 py-4 text-center font-bold text-slate-500 text-[10px] uppercase tracking-wider w-28">Rata-rata</th>
+                          <th className="px-5 py-4 text-center font-bold text-slate-500 text-[10px] uppercase tracking-wider w-28">Predikat</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredClassStudents.length === 0 ? (
+                        {classStudents.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="px-5 py-12 text-center text-slate-400 text-xs font-semibold">
-                              Tidak ada siswa yang ditemukan di kelas ini.
+                            <td colSpan={SUBJECTS.length + 4} className="text-center py-10 text-slate-400 font-bold text-xs">
+                              Tidak ada siswa terdaftar di kelas {selectedKelas}.
                             </td>
                           </tr>
                         ) : (
                           filteredClassStudents.map((student, idx) => {
-                            const sScores = classScores[student.id] || { math: "", indonesian: "", english: "", science: "", social: "" };
+                            const sScores = classScores[student.id] || {};
                             
-                            // Compute average live
-                            const m = sScores.math.trim() === "" ? null : parseFloat(sScores.math);
-                            const ind = sScores.indonesian.trim() === "" ? null : parseFloat(sScores.indonesian);
-                            const eng = sScores.english.trim() === "" ? null : parseFloat(sScores.english);
-                            const sci = sScores.science.trim() === "" ? null : parseFloat(sScores.science);
-                            const soc = sScores.social.trim() === "" ? null : parseFloat(sScores.social);
-
-                            const values = [m, ind, eng, sci, soc].filter((v): v is number => v !== null);
-                            const hasVals = values.length > 0;
-                            const avgVal = hasVals ? Number((values.reduce((a, b) => a + b, 0) / 5).toFixed(1)) : 0;
+                            // Calculate live student average
+                            const sParsed = SUBJECTS.map(subj => {
+                              const v = sScores[subj.dbKey] || "";
+                              return v.trim() === "" ? null : parseFloat(v);
+                            });
+                            const sFilled = sParsed.filter((v): v is number => v !== null);
+                            const hasVals = sFilled.length > 0;
+                            const sAvgRaw = hasVals ? (sFilled.reduce((a, b) => a + b, 0) / sFilled.length) : 0;
+                            const avgVal = Number(sAvgRaw.toFixed(1));
 
                             return (
-                              <tr key={student.id} className="hover:bg-slate-50/40 transition-colors">
-                                <td className="px-5 py-3 text-center text-xs font-semibold text-slate-400">{idx + 1}</td>
+                              <tr key={student.id} className="hover:bg-slate-50/50 transition-colors border-none group">
+                                <td className="px-5 py-3 text-center text-xs font-bold text-slate-400">{idx + 1}</td>
                                 <td className="px-5 py-3">
-                                  <div className="text-xs font-bold text-slate-800 leading-tight">{student.nama}</div>
-                                  <div className="text-[10px] font-semibold text-slate-400 mt-0.5">NIS: {student.nis}</div>
-                                </td>
-                                
-                                {/* Math */}
-                                <td className="px-4 py-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="-"
-                                    value={sScores.math}
-                                    onChange={(e) => handleClassScoreChange(student.id, "math", e.target.value)}
-                                    className="h-9 w-20 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold"
-                                  />
-                                </td>
-                                
-                                {/* Indonesian */}
-                                <td className="px-4 py-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="-"
-                                    value={sScores.indonesian}
-                                    onChange={(e) => handleClassScoreChange(student.id, "indonesian", e.target.value)}
-                                    className="h-9 w-20 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold"
-                                  />
+                                  <div className="text-xs font-bold text-slate-800 truncate max-w-[180px]">{student.nama}</div>
+                                  <div className="text-[9px] text-slate-400 font-semibold mt-0.5">NIS: {student.nis}</div>
                                 </td>
 
-                                {/* English */}
-                                <td className="px-4 py-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="-"
-                                    value={sScores.english}
-                                    onChange={(e) => handleClassScoreChange(student.id, "english", e.target.value)}
-                                    className="h-9 w-20 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold"
-                                  />
-                                </td>
-
-                                {/* Science */}
-                                <td className="px-4 py-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="-"
-                                    value={sScores.science}
-                                    onChange={(e) => handleClassScoreChange(student.id, "science", e.target.value)}
-                                    className="h-9 w-20 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold"
-                                  />
-                                </td>
-
-                                {/* Social */}
-                                <td className="px-4 py-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="-"
-                                    value={sScores.social}
-                                    onChange={(e) => handleClassScoreChange(student.id, "social", e.target.value)}
-                                    className="h-9 w-20 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold"
-                                  />
-                                </td>
+                                {/* 11 Subjects Inputs */}
+                                {SUBJECTS.map(subj => (
+                                  <td key={subj.dbKey} className="px-4 py-3 text-center">
+                                    <Input 
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      step="any"
+                                      placeholder="-"
+                                      value={sScores[subj.dbKey] || ""}
+                                      onChange={(e) => handleClassScoreChange(student.id, subj.dbKey, e.target.value)}
+                                      className="h-9 w-16 text-center mx-auto bg-white border-slate-200 focus:border-blue-500 rounded-lg text-xs font-bold shadow-none px-1"
+                                    />
+                                  </td>
+                                ))}
 
                                 {/* Live Average */}
                                 <td className="px-5 py-3 text-center">
                                   {hasVals ? (
-                                    <span className="font-extrabold text-xs text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100/50">
+                                    <span className="font-extrabold text-[10px] text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100/50">
                                       {avgVal}
                                     </span>
                                   ) : (

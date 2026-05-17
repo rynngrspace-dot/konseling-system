@@ -317,7 +317,7 @@ export function MinatBakatClient({
                             <p className="text-[11px] text-slate-500 font-bold mt-1">NIS: {student.nis} • Kelas {student.kelas}</p>
                           </div>
                           {data ? (
-                            <span className="text-[10px] font-extrabold px-2.5 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 rounded-lg uppercase tracking-wider shadow-xs shrink-0">
+                            <span className="text-[10px] font-extrabold px-2.5 py-1 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 rounded-lg uppercase tracking-wider shadow-xs shrink-0">
                               {data.mbti}
                             </span>
                           ) : (
@@ -582,7 +582,7 @@ export function MinatBakatClient({
           <div className="bg-white/95 border border-white/20 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in-scale relative">
             
             {/* Header banner decoration */}
-            <div className="h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 w-full" />
+            <div className="h-2 bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 w-full" />
             
             {/* Header */}
             <div className="px-8 pt-8 pb-5 flex items-start justify-between">
@@ -666,7 +666,7 @@ export function MinatBakatClient({
                     </div>
 
                     {/* Counseling Guidance recommendations (Wow factor) */}
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl space-y-2">
+                    <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl space-y-2">
                       <div className="flex items-center gap-1.5 text-indigo-700">
                         <Sparkles className="h-4 w-4 shrink-0" />
                         <span className="text-[10px] font-extrabold uppercase tracking-wider">Rekomendasi Bimbingan Konseling (BK)</span>
@@ -731,7 +731,7 @@ export function MinatBakatClient({
       {/* TOAST PORTAL */}
       {mounted && toast && createPortal(
         <div 
-          className="fixed top-6 right-6 z-[100] max-w-sm w-full bg-white/95 backdrop-blur-md border border-slate-100 shadow-2xl rounded-2xl p-4 flex items-center gap-3.5 text-slate-800 animate-toast-in relative overflow-hidden"
+          className="fixed top-6 right-6 z-100 max-w-sm w-full bg-white/95 backdrop-blur-md border border-slate-100 shadow-2xl rounded-2xl p-4 flex items-center gap-3.5 text-slate-800 animate-toast-in relative overflow-hidden"
           style={{ top: '24px', right: '24px', bottom: 'auto', left: 'auto', position: 'fixed' }}
         >
           <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border ${

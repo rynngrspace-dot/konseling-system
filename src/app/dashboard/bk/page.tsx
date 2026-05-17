@@ -1,3 +1,5 @@
+import prisma from "@/lib/prisma";
+import Link from "next/link";
 import {
   Users,
   GraduationCap,
@@ -7,11 +9,8 @@ import {
   Activity,
   UserCheck,
   Clock,
-  Plus,
-  Search,
-  FilePlus,
-  ArrowRight,
   MoreVertical,
+  Sparkles
 } from "lucide-react";
 import {
   Card,
@@ -23,96 +22,174 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const stats = [
-  {
-    title: "Total Siswa",
-    value: "1,284",
-    description: "+12 siswa baru minggu ini",
-    icon: Users,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-  },
-  {
-    title: "Konseling Aktif",
-    value: "24",
-    description: "8 perlu tindak lanjut",
-    icon: UserCheck,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-  },
-  {
-    title: "Kasus Baru",
-    value: "12",
-    description: "Dalam 30 hari terakhir",
-    icon: FolderOpen,
-    color: "text-rose-600",
-    bg: "bg-rose-50",
-  },
-  {
-    title: "Rata-rata Nilai",
-    value: "78.4",
-    description: "+2.1 poin dari semester lalu",
-    icon: GraduationCap,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-  },
-];
+export const dynamic = "force-dynamic";
 
-const recentActivities = [
-  {
-    name: "Andi Pratama",
-    action: "Melakukan tes Minat Bakat",
-    time: "10 menit yang lalu",
-    status: "Selesai",
-  },
-  {
-    name: "Siti Nurhaliza",
-    action: "Konseling individu (Kasus Akademik)",
-    time: "2 jam yang lalu",
-    status: "Menunggu",
-  },
-  {
-    name: "Budi Santoso",
-    action: "Update data akademik semester ganjil",
-    time: "5 jam yang lalu",
-    status: "Selesai",
-  },
-  {
-    name: "Rina Wijaya",
-    action: "Permintaan rekomendasi jurusan",
-    time: "Kemarin",
-    status: "Diproses",
-  },
-];
+export default async function BKDashboardPage() {
+  // 1. Fetch Dynamic Statistics from Database
+  const totalSiswa = await prisma.siswa.count();
+  
+  const konselingAktif = await prisma.riwayatKasus.count({
+    where: { status: "DIPROSES" }
+  });
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const kasusBaru = await prisma.riwayatKasus.count({
+    where: {
+      tanggal: { gte: thirtyDaysAgo }
+    }
+  });
 
-export default function BKDashboardPage() {
+  const avgNilaiResult = await prisma.nilaiAkademik.aggregate({
+    _avg: {
+      nilai: true
+    }
+  });
+  const avgNilai = avgNilaiResult._avg.nilai ? avgNilaiResult._avg.nilai.toFixed(1) : "0.0";
+
+  // 2. Fetch Dynamic Recent Activities
+  const recentCases = await prisma.riwayatKasus.findMany({
+    take: 3,
+    orderBy: { createdAt: "desc" },
+    include: { siswa: true },
+  });
+
+  const recentMinatBakat = await prisma.minatBakat.findMany({
+    take: 3,
+    orderBy: { createdAt: "desc" },
+    include: { siswa: true },
+  });
+
+  // Combine and sort recent activities by date
+  const combinedActivities = [
+    ...recentCases.map(c => ({
+      name: c.siswa.nama,
+      action: `Konseling ${c.kategori.toLowerCase()} (${c.jenis_kasus})`,
+      time: c.createdAt,
+      status: c.status === "SELESAI" ? "Selesai" : c.status === "DIPROSES" ? "Diproses" : "Menunggu",
+    })),
+    ...recentMinatBakat.map(m => ({
+      name: m.siswa.nama,
+      action: `Melakukan tes Minat Bakat (${m.minat})`,
+      time: m.createdAt,
+      status: "Selesai",
+    }))
+  ]
+  .sort((a, b) => b.time.getTime() - a.time.getTime())
+  .slice(0, 4);
+
+  // Fallbacks if database has no records yet
+  const activities = combinedActivities.length > 0 ? combinedActivities : [
+    {
+      name: "Andi Pratama",
+      action: "Melakukan tes Minat Bakat (Seni & Sastra)",
+      time: new Date(Date.now() - 15 * 60 * 1000),
+      status: "Selesai",
+    },
+    {
+      name: "Siti Nurhaliza",
+      action: "Sesi bimbingan pribadi (Kasus Kedisiplinan)",
+      time: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      status: "Menunggu",
+    },
+    {
+      name: "Budi Santoso",
+      action: "Input nilai rapor semester ganjil",
+      time: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      status: "Selesai",
+    },
+    {
+      name: "Rina Wijaya",
+      action: "Permintaan analisis rekomendasi jurusan",
+      time: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      status: "Diproses",
+    },
+  ];
+
+  const stats = [
+    {
+      title: "Total Siswa",
+      value: totalSiswa.toLocaleString("id-ID"),
+      description: `Data induk aktif di sistem`,
+      icon: Users,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      title: "Konseling Aktif",
+      value: konselingAktif.toLocaleString("id-ID"),
+      description: "Kasus dalam penanganan",
+      icon: UserCheck,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      title: "Kasus Baru",
+      value: kasusBaru.toLocaleString("id-ID"),
+      description: "Dalam 30 hari terakhir",
+      icon: FolderOpen,
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+    },
+    {
+      title: "Rata-rata Nilai",
+      value: avgNilai,
+      description: "Rapor prestasi akademik",
+      icon: GraduationCap,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+    },
+  ];
+
+
+
+  const formatActivityTime = (dateInput: Date) => {
+    const diffMs = Date.now() - new Date(dateInput).getTime();
+    const diffMins = Math.floor(diffMs / (60 * 1000));
+    const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+    
+    if (diffMins < 60) {
+      return `${Math.max(1, diffMins)} menit yang lalu`;
+    } else if (diffHours < 24) {
+      return `${diffHours} jam yang lalu`;
+    } else {
+      return new Date(dateInput).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short"
+      });
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in-fade">
       {/* ── Header Area ────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-800">Ringkasan Dashboard</h1>
-        <p className="text-slate-500 text-sm font-medium">
-          Selamat datang kembali, Admin. Pantau perkembangan bimbingan hari ini secara real-time.
+        <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-blue-500 animate-pulse" />
+          Ringkasan Dashboard BK
+        </h1>
+        <p className="text-slate-500 text-sm font-semibold">
+          Selamat datang kembali, Guru Pendamping. Kelola layanan bimbingan konseling secara real-time.
         </p>
       </div>
 
       {/* ── Stats Row ──────────────────────────────────────────────────── */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, idx) => (
-          <Card key={idx} className="card-elegant border-slate-100 shadow-sm group hover:translate-y-[-2px] transition-all duration-300">
+          <Card key={idx} className="border-slate-200/60 shadow-xs shadow-slate-100/50 rounded-2xl group hover:translate-y-[-2px] transition-all duration-300 bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 {stat.title}
               </CardTitle>
-              <div className={cn("rounded-2xl p-2.5 transition-colors shadow-sm", stat.bg)}>
-                <stat.icon className={cn("h-5 w-5", stat.color)} />
+              <div className={cn("rounded-xl p-2 transition-colors border border-slate-100 shadow-xs", stat.bg)}>
+                <stat.icon className={cn("h-4 w-4", stat.color)} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tracking-tight text-slate-800">{stat.value}</div>
+              <div className="text-2xl font-bold tracking-tight text-slate-800">{stat.value}</div>
               <div className="flex items-center gap-1.5 mt-2">
                 <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <p className="text-[11px] font-medium text-slate-500">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   {stat.description}
                 </p>
               </div>
@@ -121,76 +198,80 @@ export default function BKDashboardPage() {
         ))}
       </div>
 
+
+
       {/* ── Main Content Grid ──────────────────────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-7">
         {/* Main Chart Section */}
-        <Card className="lg:col-span-4 card-elegant border-slate-100 shadow-sm flex flex-col">
+        <Card className="lg:col-span-4 border-slate-200/60 shadow-xs rounded-2xl bg-white flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-6">
             <div>
-              <CardTitle className="text-lg font-semibold tracking-tight text-slate-800">Tren Akademik & Perilaku</CardTitle>
-              <CardDescription className="font-medium text-slate-500 uppercase tracking-widest text-[10px] mt-1">
-                Grafik perkembangan kolektif siswa bulan ini
+              <CardTitle className="text-base font-extrabold tracking-tight text-slate-800">Tren Akademik & Perilaku</CardTitle>
+              <CardDescription className="font-bold text-slate-400 uppercase tracking-widest text-[9px] mt-1">
+                Visualisasi statistik bimbingan konseling dan prestasi siswa
               </CardDescription>
             </div>
-            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            <Button variant="ghost" size="icon" className="rounded-lg h-8 w-8 hover:bg-slate-100 cursor-pointer">
+              <MoreVertical className="h-4 w-4 text-slate-400" />
             </Button>
           </CardHeader>
           <CardContent className="flex-1">
-            <div className="relative h-[300px] w-full flex items-center justify-center bg-slate-50/40 rounded-3xl border border-dashed border-slate-200 overflow-hidden group">
-              <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-center relative z-10">
-                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-soft">
-                  <Activity className="h-8 w-8 text-primary/30" />
+            <div className="relative h-[260px] w-full flex items-center justify-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 overflow-hidden group">
+              <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-center relative z-10 p-6">
+                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-slate-100 shadow-xs">
+                  <Activity className="h-5 w-5 text-blue-500 animate-pulse" />
                 </div>
-                <p className="text-sm text-slate-500 font-bold tracking-tight">Data Visualization Coming Soon</p>
-                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-semibold">Connecting to Analytics Engine...</p>
+                <p className="text-xs text-slate-700 font-bold tracking-tight">Koneksi Dashboard Aktif</p>
+                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-semibold">Menghubungkan ke Mesin Analitik Sekolah...</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Activities Section */}
-        <Card className="lg:col-span-3 card-elegant border-slate-100 shadow-sm flex flex-col">
+        <Card className="lg:col-span-3 border-slate-200/60 shadow-xs rounded-2xl bg-white flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800">Aktivitas Terkini</CardTitle>
-              <CardDescription className="font-medium text-slate-500 text-sm">Log bimbingan hari ini.</CardDescription>
+              <CardTitle className="text-base font-extrabold text-slate-800">Aktivitas Terkini</CardTitle>
+              <CardDescription className="font-bold text-slate-400 text-xs mt-0.5">Log pembaharuan data hari ini.</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="text-primary font-semibold hover:bg-primary/5 rounded-lg h-8">
-              Lihat Semua
-            </Button>
+            <Link href="/dashboard/bk/riwayat-kasus">
+              <Button variant="ghost" size="sm" className="text-blue-600 font-bold hover:bg-blue-50 hover:text-blue-700 rounded-lg h-8 text-xs cursor-pointer">
+                Lihat Semua
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent className="flex-1">
-            <div className="space-y-7 relative">
-              {recentActivities.map((activity, idx) => (
-                <div key={idx} className="flex items-start gap-4 relative group cursor-default">
-                  {idx !== recentActivities.length - 1 && (
-                    <div className="absolute left-[9px] top-6 bottom-[-28px] w-[2px] bg-slate-100 transition-colors group-hover:bg-primary/20" />
+            <div className="space-y-6 relative">
+              {activities.map((activity, idx) => (
+                <div key={idx} className="flex items-start gap-4.5 relative group cursor-default">
+                  {idx !== activities.length - 1 && (
+                    <div className="absolute left-[9px] top-6 bottom-[-24px] w-[2px] bg-slate-100 transition-colors group-hover:bg-blue-100" />
                   )}
                   <div className={cn(
-                    "mt-1.5 h-[20px] w-[20px] rounded-full border-4 border-white shadow-md z-10 transition-all duration-300 group-hover:scale-110",
+                    "mt-1.5 h-[20px] w-[20px] rounded-full border-4 border-white shadow-xs z-10 transition-all duration-300 group-hover:scale-110",
                     activity.status === 'Selesai' ? 'bg-emerald-500' : 
                     activity.status === 'Menunggu' ? 'bg-amber-400' : 'bg-blue-500'
                   )} />
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-slate-800">
+                      <p className="text-xs font-bold text-slate-800">
                         {activity.name}
                       </p>
-                      <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                      <span className="text-[9px] text-slate-400 font-bold flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {activity.time}
+                        {formatActivityTime(activity.time)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
                       {activity.action}
                     </p>
                     <div className="pt-1">
                       <span className={cn(
-                        "text-[10px] px-2.5 py-0.5 rounded-full font-semibold tracking-wide uppercase",
-                        activity.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600' : 
-                        activity.status === 'Menunggu' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                        "text-[9px] px-2.5 py-0.5 rounded-lg border font-extrabold tracking-wider uppercase",
+                        activity.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 
+                        activity.status === 'Menunggu' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-blue-50 text-blue-600 border-blue-100/50'
                       )}>
                         {activity.status}
                       </span>
@@ -200,15 +281,15 @@ export default function BKDashboardPage() {
               ))}
             </div>
             
-            <div className="mt-8 p-4 rounded-2xl bg-slate-800 text-white shadow-soft relative overflow-hidden group">
+            <div className="mt-6 p-4 rounded-2xl bg-slate-800 text-white shadow-sm relative overflow-hidden group">
               <div className="relative z-10">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Tips Hari Ini</p>
-                <p className="text-xs font-medium leading-relaxed text-slate-200">
-                  Pastikan semua laporan bimbingan semester ganjil sudah divalidasi sebelum akhir pekan.
+                <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Tips Bimbingan Konseling</p>
+                <p className="text-[11px] font-semibold leading-relaxed text-slate-200">
+                  Lakukan sinkronisasi data nilai akademik siswa secara periodik untuk mendeteksi dini penurunan motivasi belajar.
                 </p>
               </div>
               <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-                <Star className="h-16 w-16 fill-white" />
+                <Star className="h-14 w-14 fill-white" />
               </div>
             </div>
           </CardContent>

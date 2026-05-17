@@ -2,16 +2,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { RiwayatKasusClient } from "./riwayat-client";
+import { CaseConsole } from "./console";
 
-export default async function RiwayatKasusBKPage() {
+export default async function CreateCasePage() {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== "GURU_BK") {
     redirect("/login");
   }
 
-  // Ambil semua data siswa untuk pilihan dropdown (input/edit)
+  // Fetch all students for the dropdown
   const allStudents = await prisma.siswa.findMany({
     orderBy: {
       nama: "asc",
@@ -24,21 +24,11 @@ export default async function RiwayatKasusBKPage() {
     },
   });
 
-  // Ambil semua data riwayat kasus dari database
-  const allCases = await prisma.riwayatKasus.findMany({
-    orderBy: {
-      tanggal: "desc",
-    },
-    include: {
-      siswa: true,
-      guruBk: true,
-    },
-  });
-
   return (
-    <RiwayatKasusClient
+    <CaseConsole
       allStudents={allStudents}
-      initialCases={allCases}
+      initialCase={null}
+      initialCaseId=""
       activeUserId={session.user.id}
     />
   );

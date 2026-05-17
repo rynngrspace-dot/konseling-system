@@ -61,3 +61,35 @@ export interface MinatBakatClientProps {
   initialQuery: string;
   initialKelas: string;
 }
+
+export interface RiwayatKasusRecord {
+  id: string;
+  siswaId: string;
+  guruId: string;
+  tanggal: Date;
+  kategori: any; // KategoriKasus
+  jenis_kasus: string;
+  keterangan: string;
+  status: any; // StatusKasus
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SiswaOption {
+  id: string;
+  nama: string;
+  nis: string;
+  kelas: string | null;
+}
+
+export interface GuruBkRecord {
+  id: string;
+  nama: string;
+  nip: string;
+}
+
+export interface RiwayatKasusWithSiswa extends RiwayatKasusRecord {
+  siswa: SiswaOption;
+  guruBk: GuruBkRecord;
+}
+
