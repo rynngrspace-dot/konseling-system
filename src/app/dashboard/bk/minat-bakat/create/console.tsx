@@ -295,7 +295,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
         <Button 
           onClick={() => router.push("/dashboard/bk/minat-bakat")}
           variant="ghost" 
-          className="text-slate-500 hover:text-slate-800 flex items-center gap-1.5 font-semibold text-xs px-3 h-9 rounded-xl transition-all cursor-pointer"
+          className="text-slate-500 hover:text-slate-800 flex items-center gap-1.5 font-semibold text-xs px-3 h-9 rounded-lg transition-all cursor-pointer"
         >
           <ChevronLeft className="h-4 w-4" />
           Kembali ke Rekap
@@ -356,7 +356,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         onChange={(e) => handleStudentChange(e.target.value)}
                         required
                         disabled={!!initialSiswaId}
-                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-lg text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
                       >
                         <option value="" disabled>-- Pilih Siswa --</option>
                         {allStudents.map(s => (
@@ -376,7 +376,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         onChange={(e) => setInputDominan(e.target.value)}
                         required
                         disabled={!selectedStudent}
-                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all disabled:opacity-50"
+                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-lg text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all disabled:opacity-50"
                       >
                         <option value="" disabled>-- Pilih Kecerdasan --</option>
                         {dominanOptions.map(opt => (
@@ -396,7 +396,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         setCurrentStep(2);
                       }}
                       disabled={!selectedStudent || !inputDominan}
-                      className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 mt-4 shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20"
+                      className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 mt-4 shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20"
                     >
                       Lanjut ke Diagnosis Karakter
                       <ArrowRight className="h-4 w-4" />
@@ -440,7 +440,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                           value={inputMbti}
                           onChange={(e) => setInputMbti(e.target.value)}
                           required
-                          className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all"
+                          className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-lg text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all"
                         >
                           <option value="" disabled>-- Pilih Tipe MBTI --</option>
                           {mbtiOptions.map(opt => (
@@ -482,7 +482,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setter(opt.value)}
-                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                    className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                                       currentValue === opt.value
                                         ? "bg-blue-50 border-blue-500 shadow-xs"
                                         : "bg-slate-50/50 border-slate-200/80 hover:bg-slate-50"
@@ -515,7 +515,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         type="button"
                         variant="outline"
                         onClick={() => setCurrentStep(1)}
-                        className="w-1/2 h-11 border-slate-200 text-slate-600 rounded-xl cursor-pointer font-bold text-xs"
+                        className="w-1/2 h-11 border-slate-200 text-slate-600 rounded-lg cursor-pointer font-bold text-xs"
                       >
                         Kembali
                       </Button>
@@ -530,7 +530,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                           setCurrentStep(3);
                         }}
                         disabled={!inputMbti}
-                        className="w-1/2 h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10 hover:shadow-lg"
+                        className="w-1/2 h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10 hover:shadow-lg"
                       >
                         Lanjut
                         <ArrowRight className="h-4 w-4" />
@@ -550,7 +550,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         value={inputMinat}
                         onChange={(e) => setInputMinat(e.target.value)}
                         required
-                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all"
+                        className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 rounded-lg text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all"
                       >
                         <option value="" disabled>-- Pilih Bidang Karir --</option>
                         {minatOptions.map(opt => (
@@ -568,7 +568,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         value={inputBakat}
                         onChange={(e) => setInputBakat(e.target.value)}
                         required
-                        className="h-11 px-4 bg-slate-50/50 border border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold"
+                        className="h-11 px-4 bg-slate-50/50 border border-slate-200 focus:border-blue-500 rounded-lg text-sm outline-none font-bold"
                       />
                     </div>
 
@@ -577,7 +577,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         type="button"
                         variant="outline"
                         onClick={() => setCurrentStep(2)}
-                        className="w-1/2 h-11 border-slate-200 text-slate-600 rounded-xl cursor-pointer font-bold text-xs"
+                        className="w-1/2 h-11 border-slate-200 text-slate-600 rounded-lg cursor-pointer font-bold text-xs"
                       >
                         Kembali
                       </Button>
@@ -592,7 +592,7 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                           setCurrentStep(4);
                         }}
                         disabled={!inputMinat || !inputBakat}
-                        className="w-1/2 h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10 hover:shadow-lg"
+                        className="w-1/2 h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10 hover:shadow-lg"
                       >
                         Lanjut
                         <ArrowRight className="h-4 w-4" />
@@ -646,14 +646,14 @@ export function MinatBakatConsole({ allStudents, initialSiswaId }: ConsoleProps)
                         variant="outline"
                         disabled={formLoading}
                         onClick={() => setCurrentStep(3)}
-                        className="w-1/3 h-11 border-slate-200 text-slate-600 rounded-xl cursor-pointer font-bold text-xs"
+                        className="w-1/3 h-11 border-slate-200 text-slate-600 rounded-lg cursor-pointer font-bold text-xs"
                       >
                         Kembali
                       </Button>
                       <Button
                         type="submit"
                         disabled={formLoading}
-                        className="w-2/3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl cursor-pointer shadow-md shadow-emerald-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                        className="w-2/3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-lg cursor-pointer shadow-md shadow-emerald-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-2"
                       >
                         {formLoading ? "Menyimpan..." : "Simpan Asesmen"}
                         <CheckCircle className="h-4 w-4" />

@@ -1,14 +1,14 @@
 import prisma from "@/lib/prisma";
-import { MinatBakatConsole } from "./console";
+import { NilaiConsole } from "./console";
 
 // Dynamic routing config
 export const dynamic = "force-dynamic";
 
-export default async function CreateMinatBakatPage() {
+export default async function CreateNilaiPage() {
   // Fetch all students to support dropdown selection
   const allStudents = await prisma.siswa.findMany({
     include: {
-      minatBakat: true,
+      nilaiAkademik: true,
     },
     orderBy: {
       nama: "asc",
@@ -16,9 +16,10 @@ export default async function CreateMinatBakatPage() {
   });
 
   return (
-    <MinatBakatConsole
+    <NilaiConsole
       allStudents={allStudents as any}
       initialSiswaId=""
+      initialSemester={1}
     />
   );
 }

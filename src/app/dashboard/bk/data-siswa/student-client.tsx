@@ -56,21 +56,11 @@ export default function StudentClient({
     }
   }, [toast]);
 
-  // Modals States
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // Modals & Delete States
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-  // Form States
+  const [selectedStudent, setSelectedStudent] = useState<Siswa | null>(null);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Siswa | null>(null);
-
-  // Form Inputs
-  const [inputNis, setInputNis] = useState("");
-  const [inputNama, setInputNama] = useState("");
-  const [inputKelas, setInputKelas] = useState("");
-  const [inputGender, setInputGender] = useState("Laki-laki");
 
   // Debounced Search Handler
   useEffect(() => {
@@ -108,75 +98,11 @@ export default function StudentClient({
     router.push(`/dashboard/bk/data-siswa?${params.toString()}`);
   };
 
-  // Open Edit Modal
-  const openEditModal = (student: Siswa) => {
-    setSelectedStudent(student);
-    setInputNis(student.nis);
-    setInputNama(student.nama);
-    setInputKelas(student.kelas);
-    setInputGender(student.jenis_kelamin);
-    setFormError("");
-    setIsEditOpen(true);
-  };
-
   // Open Delete Modal
   const openDeleteModal = (student: Siswa) => {
     setSelectedStudent(student);
     setFormError("");
     setIsDeleteOpen(true);
-  };
-
-  // Submit Add Student
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
-    setFormLoading(true);
-
-    const res = await createSiswa({
-      nis: inputNis,
-      nama: inputNama,
-      kelas: inputKelas,
-      jenis_kelamin: inputGender,
-    });
-
-    setFormLoading(false);
-    if (res.error) {
-      setFormError(res.error);
-    } else {
-      // Reset form
-      setInputNis("");
-      setInputNama("");
-      setInputKelas("");
-      setInputGender("Laki-laki");
-      setIsAddOpen(false);
-      showToast("Siswa baru berhasil didaftarkan!", "success");
-      router.refresh();
-    }
-  };
-
-  // Submit Edit Student
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStudent) return;
-    setFormError("");
-    setFormLoading(true);
-
-    const res = await updateSiswa(selectedStudent.id, {
-      nis: inputNis,
-      nama: inputNama,
-      kelas: inputKelas,
-      jenis_kelamin: inputGender,
-    });
-
-    setFormLoading(false);
-    if (res.error) {
-      setFormError(res.error);
-    } else {
-      setIsEditOpen(false);
-      setSelectedStudent(null);
-      showToast("Data profil siswa berhasil diperbarui!", "success");
-      router.refresh();
-    }
   };
 
   // Submit Delete Student
@@ -212,14 +138,7 @@ export default function StudentClient({
           </p>
         </div>
         <Button 
-          onClick={() => {
-            setInputNis("");
-            setInputNama("");
-            setInputKelas("");
-            setInputGender("Laki-laki");
-            setFormError("");
-            setIsAddOpen(true);
-          }}
+          onClick={() => router.push("/dashboard/bk/data-siswa/create")}
           className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white rounded-lg h-10 px-4 font-medium shadow-sm transition-all"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -289,7 +208,7 @@ export default function StudentClient({
                     </TableCell>
                     <TableCell className="text-sm text-slate-500 px-4 py-3">{student.nis}</TableCell>
                     <TableCell className="text-sm font-medium text-slate-700 px-4 py-3">{student.nama}</TableCell>
-                    <TableCell className="text-sm text-slate-500 px-4 py-3">{student.kelas}</TableCell>
+                    <TableCell className="text-sm text-slate-500 px-4 py-3">{student.kelas || <span className="text-slate-400 italic text-[11px]">-</span>}</TableCell>
                     <TableCell className="px-4 py-3">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase ${
                         student.jenis_kelamin === 'Laki-laki' ? 'bg-blue-50 text-blue-600' : 'bg-rose-50 text-rose-600'
@@ -300,7 +219,7 @@ export default function StudentClient({
                     <TableCell className="text-center px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
                         <Button 
-                          onClick={() => openEditModal(student)}
+                          onClick={() => router.push(`/dashboard/bk/data-siswa/edit?siswaId=${student.id}`)}
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
@@ -378,290 +297,7 @@ export default function StudentClient({
       </div>
     </div>
 
-      {/* Modals outside the animated container to prevent stacking-context confinement */}
-      {/* --- ADD MODAL --- */}
-      {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all duration-300 animate-in-fade">
-          <div className="bg-white/95 border border-white/20 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in-scale relative">
-            
-            {/* Header */}
-            <div className="px-8 pt-8 pb-5 flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50 shadow-xs shrink-0">
-                  <Plus className="h-6 w-6 stroke-[2.5]" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-tight">
-                    Registrasi Siswa Baru
-                  </h2>
-                  <p className="text-slate-500 text-xs font-medium mt-1">
-                    Lengkapi formulir di bawah untuk mendaftarkan siswa baru ke sistem.
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsAddOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
 
-            {/* Form */}
-            <form onSubmit={handleAddSubmit}>
-              <div className="px-8 pb-6 space-y-5">
-                {formError && (
-                  <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-semibold p-3.5 rounded-xl animate-shake">
-                    {formError}
-                  </div>
-                )}
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="nis" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    NIS (Nomor Induk Siswa)
-                  </Label>
-                  <Input 
-                    id="nis" 
-                    placeholder="Masukkan NIS unik siswa..." 
-                    value={inputNis}
-                    onChange={(e) => setInputNis(e.target.value)}
-                    required
-                    className="h-11 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white rounded-xl text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-100 placeholder:text-slate-400 font-medium px-4 shadow-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="nama" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    Nama Lengkap Siswa
-                  </Label>
-                  <Input 
-                    id="nama" 
-                    placeholder="Masukkan nama lengkap sesuai absen..." 
-                    value={inputNama}
-                    onChange={(e) => setInputNama(e.target.value)}
-                    required
-                    className="h-11 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white rounded-xl text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-100 placeholder:text-slate-400 font-medium px-4 shadow-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="kelas" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      Kelas
-                    </Label>
-                    <select
-                      id="kelas"
-                      value={inputKelas}
-                      onChange={(e) => setInputKelas(e.target.value)}
-                      required
-                      className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 transition-all"
-                    >
-                      <option value="">Pilih...</option>
-                      <option value="7A">7A</option>
-                      <option value="7B">7B</option>
-                      <option value="7C">7C</option>
-                      <option value="8A">8A</option>
-                      <option value="8B">8B</option>
-                      <option value="8C">8C</option>
-                      <option value="9A">9A</option>
-                      <option value="9B">9B</option>
-                      <option value="9C">9C</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-1.5">
-                    <Label htmlFor="gender" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      Jenis Kelamin
-                    </Label>
-                    <select
-                      id="gender"
-                      value={inputGender}
-                      onChange={(e) => setInputGender(e.target.value)}
-                      required
-                      className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 transition-all"
-                    >
-                      <option value="Laki-laki">Laki-laki</option>
-                      <option value="Perempuan">Perempuan</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Auto Account Creation Notice */}
-                <div className="bg-blue-50/60 border border-blue-100/50 rounded-xl p-4 flex gap-3 text-xs leading-relaxed text-blue-800 font-medium">
-                  <div className="shrink-0 mt-0.5">
-                    <svg className="h-4.5 w-4.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p>
-                    Sistem secara otomatis akan menerbitkan akun login siswa dengan <strong className="font-bold">Username = NIS</strong> dan password default <strong className="font-bold">"123"</strong>.
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100/80 flex items-center justify-end gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsAddOpen(false)}
-                  className="rounded-xl h-10 px-5 text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer font-semibold text-sm transition-all"
-                >
-                  Batal
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={formLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-6 cursor-pointer font-semibold text-sm shadow-sm shadow-blue-500/10 hover:shadow-md hover:shadow-blue-500/20 transition-all flex items-center gap-2"
-                >
-                  {formLoading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : "Daftarkan Siswa"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* --- EDIT MODAL --- */}
-      {isEditOpen && selectedStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all duration-300 animate-in-fade">
-          <div className="bg-white/95 border border-white/20 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in-scale relative">
-            
-            {/* Header */}
-            <div className="px-8 pt-8 pb-5 flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50 shadow-xs shrink-0">
-                  <Edit className="h-5 w-5 stroke-[2.5]" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-tight">
-                    Edit Profil Siswa
-                  </h2>
-                  <p className="text-slate-500 text-xs font-medium mt-1">
-                    Ubah informasi data induk untuk siswa: <strong className="text-slate-700 font-bold">{selectedStudent.nama}</strong>.
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsEditOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleEditSubmit}>
-              <div className="px-8 pb-6 space-y-5">
-                {formError && (
-                  <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-semibold p-3.5 rounded-xl animate-shake">
-                    {formError}
-                  </div>
-                )}
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-nis" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    NIS (Nomor Induk Siswa)
-                  </Label>
-                  <Input 
-                    id="edit-nis" 
-                    placeholder="Masukkan NIS unik siswa..." 
-                    value={inputNis}
-                    onChange={(e) => setInputNis(e.target.value)}
-                    required
-                    className="h-11 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white rounded-xl text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-100 placeholder:text-slate-400 font-medium px-4 shadow-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-nama" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    Nama Lengkap Siswa
-                  </Label>
-                  <Input 
-                    id="edit-nama" 
-                    placeholder="Masukkan nama lengkap sesuai absen..." 
-                    value={inputNama}
-                    onChange={(e) => setInputNama(e.target.value)}
-                    required
-                    className="h-11 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white rounded-xl text-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-100 placeholder:text-slate-400 font-medium px-4 shadow-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-kelas" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      Kelas
-                    </Label>
-                    <select
-                      id="edit-kelas"
-                      value={inputKelas}
-                      onChange={(e) => setInputKelas(e.target.value)}
-                      required
-                      className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 transition-all"
-                    >
-                      <option value="">Pilih...</option>
-                      <option value="7A">7A</option>
-                      <option value="7B">7B</option>
-                      <option value="7C">7C</option>
-                      <option value="8A">8A</option>
-                      <option value="8B">8B</option>
-                      <option value="8C">8C</option>
-                      <option value="9A">9A</option>
-                      <option value="9B">9B</option>
-                      <option value="9C">9C</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-gender" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      Jenis Kelamin
-                    </Label>
-                    <select
-                      id="edit-gender"
-                      value={inputGender}
-                      onChange={(e) => setInputGender(e.target.value)}
-                      required
-                      className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 transition-all"
-                    >
-                      <option value="Laki-laki">Laki-laki</option>
-                      <option value="Perempuan">Perempuan</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100/80 flex items-center justify-end gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditOpen(false)}
-                  className="rounded-xl h-10 px-5 text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer font-semibold text-sm transition-all"
-                >
-                  Batal
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={formLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-6 cursor-pointer font-semibold text-sm shadow-sm shadow-emerald-500/10 hover:shadow-md hover:shadow-emerald-500/20 transition-all flex items-center gap-2"
-                >
-                  {formLoading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : "Simpan Perubahan"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* --- DELETE MODAL --- */}
       {isDeleteOpen && selectedStudent && (

@@ -41,7 +41,7 @@ model Siswa {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   nis           String   @unique
   nama          String
-  kelas         String
+  kelas         String?
   jenis_kelamin String
 
   createdAt     DateTime @default(now())

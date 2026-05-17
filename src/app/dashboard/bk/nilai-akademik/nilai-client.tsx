@@ -94,20 +94,8 @@ export function NilaiClient({
   }, [toast]);
 
   // Modal States
-  const [isInputOpen, setIsInputOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<SiswaWithNilai | null>(null);
-
-  // Form Inputs
-  const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState("");
-  
-  const [inputSemester, setInputSemester] = useState(selectedSemester);
-  const [inputMath, setInputMath] = useState("");
-  const [inputIndonesian, setInputIndonesian] = useState("");
-  const [inputEnglish, setInputEnglish] = useState("");
-  const [inputScience, setInputScience] = useState("");
-  const [inputSocial, setInputSocial] = useState("");
 
   // Individual Search State for Rapor Individu tab
   const [individualSearch, setIndividualSearch] = useState("");
@@ -168,98 +156,9 @@ export function NilaiClient({
     return { math, indonesian, english, science, social, average, isFilled: filledCount > 0 };
   };
 
-  // Open input modal with existing score data prefilled if available
-  const handleOpenInput = (student: SiswaWithNilai) => {
-    setSelectedStudent(student);
-    setInputSemester(selectedSemester);
-    
-    const scores = getStudentScores(student, selectedSemester);
-    setInputMath(scores.math !== null ? scores.math.toString() : "");
-    setInputIndonesian(scores.indonesian !== null ? scores.indonesian.toString() : "");
-    setInputEnglish(scores.english !== null ? scores.english.toString() : "");
-    setInputScience(scores.science !== null ? scores.science.toString() : "");
-    setInputSocial(scores.social !== null ? scores.social.toString() : "");
-    
-    setFormError("");
-    setIsInputOpen(true);
-  };
-
-  const handleOpenNewInput = () => {
-    setSelectedStudent(null);
-    setInputSemester(selectedSemester);
-    setInputMath("");
-    setInputIndonesian("");
-    setInputEnglish("");
-    setInputScience("");
-    setInputSocial("");
-    setFormError("");
-    setIsInputOpen(true);
-  };
-
-  // Keep inputs updated when inputSemester changes inside the modal
-  useEffect(() => {
-    if (selectedStudent && isInputOpen) {
-      const scores = getStudentScores(selectedStudent, inputSemester);
-      setInputMath(scores.math !== null ? scores.math.toString() : "");
-      setInputIndonesian(scores.indonesian !== null ? scores.indonesian.toString() : "");
-      setInputEnglish(scores.english !== null ? scores.english.toString() : "");
-      setInputScience(scores.science !== null ? scores.science.toString() : "");
-      setInputSocial(scores.social !== null ? scores.social.toString() : "");
-    }
-  }, [inputSemester]);
-
-  // Submit Handler for upserting scores
-  const handleInputSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStudent) return;
-    setFormError("");
-    setFormLoading(true);
-
-    const scores = {
-      matematika: inputMath.trim() === "" ? null : parseFloat(inputMath),
-      indonesian: inputIndonesian.trim() === "" ? null : parseFloat(inputIndonesian),
-      english: inputEnglish.trim() === "" ? null : parseFloat(inputEnglish),
-      science: inputScience.trim() === "" ? null : parseFloat(inputScience),
-      social: inputSocial.trim() === "" ? null : parseFloat(inputSocial),
-    };
-
-    // Validasi range nilai
-    const checkScores = Object.values(scores).filter((val): val is number => val !== null);
-    if (checkScores.some(val => val < 0 || val > 100)) {
-      setFormError("Rentang nilai harus berkisar dari 0 sampai 100!");
-      setFormLoading(false);
-      return;
-    }
-
-    const res = await upsertNilai(selectedStudent.id, inputSemester, scores);
-    setFormLoading(false);
-    
-    if (res.error) {
-      setFormError(res.error);
-    } else {
-      setIsInputOpen(false);
-      setSelectedStudent(null);
-      showToast("Nilai akademik berhasil disimpan ke database!", "success");
-      
-      // Update individual view state if it is currently viewing this student
-      if (viewedStudent && viewedStudent.id === selectedStudent.id) {
-        const updatedRecords = viewedStudent.nilaiAkademik.filter(n => n.semester !== inputSemester);
-        
-        if (scores.matematika !== null) updatedRecords.push({ id: "temp", siswaId: viewedStudent.id, semester: inputSemester, mata_pelajaran: "Matematika", nilai: scores.matematika });
-        if (scores.indonesian !== null) updatedRecords.push({ id: "temp", siswaId: viewedStudent.id, semester: inputSemester, mata_pelajaran: "Bahasa Indonesia", nilai: scores.indonesian });
-        if (scores.english !== null) updatedRecords.push({ id: "temp", siswaId: viewedStudent.id, semester: inputSemester, mata_pelajaran: "Bahasa Inggris", nilai: scores.english });
-        if (scores.science !== null) updatedRecords.push({ id: "temp", siswaId: viewedStudent.id, semester: inputSemester, mata_pelajaran: "IPA", nilai: scores.science });
-        if (scores.social !== null) updatedRecords.push({ id: "temp", siswaId: viewedStudent.id, semester: inputSemester, mata_pelajaran: "IPS", nilai: scores.social });
-        
-        setViewedStudent({
-          ...viewedStudent,
-          nilaiAkademik: updatedRecords
-        });
-      }
-      
-      router.refresh();
-    }
-  };
+  // Form Status
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   // Open Delete modal
   const handleOpenDelete = (student: SiswaWithNilai) => {
@@ -328,12 +227,12 @@ export function NilaiClient({
             <Button 
               onClick={() => {
                 if (allStudents.length > 0) {
-                  handleOpenNewInput();
+                  router.push("/dashboard/bk/nilai-akademik/create");
                 } else {
                   showToast("Daftarkan siswa terlebih dahulu di menu Data Siswa!", "error");
                 }
               }}
-              className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
+              className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
             >
               <BookOpen className="h-4 w-4" />
               Input Nilai Rapor
@@ -366,14 +265,14 @@ export function NilaiClient({
                     placeholder="Cari NIS atau Nama..." 
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 h-11 bg-white border-slate-200 focus:border-blue-500 rounded-xl shadow-none focus-visible:outline-none focus-visible:ring-0"
+                    className="pl-10 h-11 bg-white border-slate-200 focus:border-blue-500 rounded-lg shadow-none focus-visible:outline-none focus-visible:ring-0"
                   />
                 </div>
                 
                 <select
                   value={selectedKelas}
                   onChange={(e) => setSelectedKelas(e.target.value)}
-                  className="h-11 px-4 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-600 transition-all shrink-0"
+                  className="h-11 px-4 bg-white border border-slate-200 focus:border-blue-500 rounded-lg text-sm outline-none cursor-pointer font-medium text-slate-600 transition-all shrink-0"
                 >
                   <option value="all">Semua Kelas</option>
                   <option value="7A">Kelas 7A</option>
@@ -485,7 +384,7 @@ export function NilaiClient({
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  onClick={() => handleOpenInput(student)}
+                                  onClick={() => router.push(`/dashboard/bk/nilai-akademik/edit?siswaId=${student.id}&semester=${selectedSemester}`)}
                                   className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors" 
                                   title="Input/Edit Nilai"
                                 >
@@ -571,7 +470,7 @@ export function NilaiClient({
                     placeholder="Masukkan nama siswa (contoh: Andi)..." 
                     value={individualSearch}
                     onChange={(e) => handleIndividualSearchChange(e.target.value)}
-                    className="pl-11 h-12 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus:bg-white transition-all"
+                    className="pl-11 h-12 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-lg text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus:bg-white transition-all"
                   />
                 </div>
               </CardContent>
@@ -681,219 +580,6 @@ export function NilaiClient({
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Modals outside the animated container to prevent stacking-context confinement */}
-      
-      {/* --- INPUT/EDIT GRADES MODAL --- */}
-      {isInputOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all duration-300 animate-in-fade">
-          <div className="bg-white/95 border border-white/20 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden animate-in-scale relative">
-            
-            {/* Header */}
-            <div className="px-8 pt-8 pb-5 flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100/50 text-blue-600 flex items-center justify-center shadow-xs shrink-0">
-                  <Award className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-tight">
-                    Input Nilai Rapor
-                  </h2>
-                  <p className="text-slate-500 text-xs font-semibold mt-1">
-                    Isi formulir nilai rapor akademik siswa untuk semester terpilih.
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsInputOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Student Search & Select Dropdown */}
-            <div className="mx-8 p-4 bg-slate-50/80 border border-slate-100 rounded-2xl space-y-3">
-              <div>
-                <Label htmlFor="modal-student-select" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                  Pilih Siswa
-                </Label>
-                <select
-                  id="modal-student-select"
-                  value={selectedStudent?.id || ""}
-                  onChange={(e) => {
-                    const matched = allStudents.find(s => s.id === e.target.value);
-                    if (matched) {
-                      setSelectedStudent(matched);
-                      const scores = getStudentScores(matched, inputSemester);
-                      setInputMath(scores.math !== null ? scores.math.toString() : "");
-                      setInputIndonesian(scores.indonesian !== null ? scores.indonesian.toString() : "");
-                      setInputEnglish(scores.english !== null ? scores.english.toString() : "");
-                      setInputScience(scores.science !== null ? scores.science.toString() : "");
-                      setInputSocial(scores.social !== null ? scores.social.toString() : "");
-                    }
-                  }}
-                  className="h-10 w-full px-3 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-xs outline-none cursor-pointer font-bold text-slate-700 transition-all"
-                >
-                  <option value="" disabled>-- Cari/Pilih Siswa --</option>
-                  {allStudents.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.nama} (NIS: {s.nis}) - Kelas {s.kelas}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {selectedStudent && (
-                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200/40">
-                  <span>Nama: <strong className="text-slate-700">{selectedStudent.nama}</strong></span>
-                  <span>NIS: <strong className="text-slate-700">{selectedStudent.nis}</strong> • Kelas: <strong className="text-slate-700">{selectedStudent.kelas}</strong></span>
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleInputSubmit}>
-              <div className="p-8 space-y-5 max-h-[55vh] overflow-y-auto">
-                {formError && (
-                  <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-semibold border border-red-100 flex items-center gap-2 animate-in-shake">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{formError}</span>
-                  </div>
-                )}
-
-                {/* Input Semester */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="input-semester" className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    Semester Evaluasi
-                  </Label>
-                  <select
-                    id="input-semester"
-                    value={inputSemester}
-                    onChange={(e) => setInputSemester(parseInt(e.target.value))}
-                    required
-                    className="h-11 w-full px-4 bg-slate-50/50 border border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-sm outline-none cursor-pointer font-bold text-slate-700 transition-all"
-                  >
-                    {[1, 2, 3, 4, 5, 6].map((s) => (
-                      <option key={s} value={s}>Semester {s}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="border-t border-slate-100 pt-4 mt-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-4">Nilai Mata Pelajaran (Rentang 0 - 100)</span>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Math */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="input-math" className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Matematika</Label>
-                      <Input
-                        id="input-math"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="any"
-                        placeholder="0.00"
-                        value={inputMath}
-                        onChange={(e) => setInputMath(e.target.value)}
-                        disabled={!selectedStudent}
-                        className="h-11 px-4 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold disabled:opacity-50"
-                      />
-                    </div>
-                    {/* Indonesian */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="input-indonesian" className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Bahasa Indonesia</Label>
-                      <Input
-                        id="input-indonesian"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="any"
-                        placeholder="0.00"
-                        value={inputIndonesian}
-                        onChange={(e) => setInputIndonesian(e.target.value)}
-                        disabled={!selectedStudent}
-                        className="h-11 px-4 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold disabled:opacity-50"
-                      />
-                    </div>
-                    {/* English */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="input-english" className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Bahasa Inggris</Label>
-                      <Input
-                        id="input-english"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="any"
-                        placeholder="0.00"
-                        value={inputEnglish}
-                        onChange={(e) => setInputEnglish(e.target.value)}
-                        disabled={!selectedStudent}
-                        className="h-11 px-4 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold disabled:opacity-50"
-                      />
-                    </div>
-                    {/* Science */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="input-science" className="text-[9px] font-bold uppercase tracking-wider text-slate-400">IPA</Label>
-                      <Input
-                        id="input-science"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="any"
-                        placeholder="0.00"
-                        value={inputScience}
-                        onChange={(e) => setInputScience(e.target.value)}
-                        disabled={!selectedStudent}
-                        className="h-11 px-4 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold disabled:opacity-50"
-                      />
-                    </div>
-                    {/* Social */}
-                    <div className="space-y-1.5 col-span-2">
-                      <Label htmlFor="input-social" className="text-[9px] font-bold uppercase tracking-wider text-slate-400">IPS</Label>
-                      <Input
-                        id="input-social"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="any"
-                        placeholder="0.00"
-                        value={inputSocial}
-                        onChange={(e) => setInputSocial(e.target.value)}
-                        disabled={!selectedStudent}
-                        className="h-11 px-4 bg-slate-50/50 border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none font-bold disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100/80 flex items-center justify-end gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsInputOpen(false)}
-                  className="rounded-xl h-10 px-5 text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer font-semibold text-sm transition-all"
-                >
-                  Batal
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={formLoading || !selectedStudent}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-6 cursor-pointer font-semibold text-sm shadow-sm shadow-blue-500/10 hover:shadow-md hover:shadow-blue-500/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {formLoading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : "Simpan Nilai"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* --- CONFIRM DELETE MODAL --- */}
       {isDeleteOpen && selectedStudent && (

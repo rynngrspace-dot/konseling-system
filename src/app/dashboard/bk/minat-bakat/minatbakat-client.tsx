@@ -238,7 +238,7 @@ export function MinatBakatClient({
                 showToast("Daftarkan siswa terlebih dahulu di menu Data Siswa!", "error");
               }
             }}
-            className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
+            className="bg-linear-to-r cursor-pointer bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-10 px-5 font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border-0 flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Input Minat & Bakat
@@ -272,7 +272,7 @@ export function MinatBakatClient({
                     setSelectedKelas(e.target.value);
                     updateFilters(search, e.target.value);
                   }}
-                  className="pl-9 pr-3 h-10 w-full bg-white border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-600 outline-none cursor-pointer hover:border-slate-300 transition-colors"
+                  className="pl-9 pr-3 h-10 w-full bg-white border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-600 outline-none cursor-pointer hover:border-slate-300 transition-colors"
                 >
                   <option value="all">Semua Kelas</option>
                   <option value="7">Kelas 7</option>
@@ -288,7 +288,7 @@ export function MinatBakatClient({
                   placeholder="Cari nama atau NIS..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-10 bg-white border-slate-200/80 focus:border-blue-500 rounded-xl shadow-none font-medium text-xs transition-all"
+                  className="pl-9 h-10 bg-white border-slate-200/80 focus:border-blue-500 rounded-lg shadow-none font-medium text-xs transition-all"
                 />
               </div>
             </div>
@@ -353,7 +353,7 @@ export function MinatBakatClient({
                           <div className="py-6 flex flex-col items-center justify-center border border-dashed border-slate-100 rounded-xl bg-slate-50/50 mt-4">
                             <p className="text-[10px] text-slate-400 font-bold">Data asesmen kosong</p>
                             <Button 
-                              onClick={() => router.push(`/dashboard/bk/minat-bakat/create?siswaId=${student.id}`)}
+                              onClick={() => router.push(`/dashboard/bk/minat-bakat/edit?siswaId=${student.id}`)}
                               variant="link" 
                               className="text-xs font-extrabold text-blue-600 h-auto p-0 mt-1 cursor-pointer hover:underline"
                             >
@@ -376,7 +376,7 @@ export function MinatBakatClient({
                               Lihat Detail
                             </Button>
                             <Button 
-                              onClick={() => router.push(`/dashboard/bk/minat-bakat/create?siswaId=${student.id}`)}
+                              onClick={() => router.push(`/dashboard/bk/minat-bakat/edit?siswaId=${student.id}`)}
                               variant="ghost" 
                               size="icon" 
                               className="h-8 w-8 text-emerald-500 rounded-lg hover:bg-emerald-50 cursor-pointer"
@@ -479,7 +479,7 @@ export function MinatBakatClient({
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                   <Button 
-                                    onClick={() => router.push(`/dashboard/bk/minat-bakat/create?siswaId=${student.id}`)}
+                                    onClick={() => router.push(`/dashboard/bk/minat-bakat/edit?siswaId=${student.id}`)}
                                     variant="ghost" 
                                     size="icon" 
                                     className="h-8 w-8 text-emerald-500 rounded-lg hover:bg-emerald-50 cursor-pointer" 
@@ -499,10 +499,10 @@ export function MinatBakatClient({
                                 </>
                               ) : (
                                 <Button 
-                                  onClick={() => router.push(`/dashboard/bk/minat-bakat/create?siswaId=${student.id}`)}
+                                  onClick={() => router.push(`/dashboard/bk/minat-bakat/edit?siswaId=${student.id}`)}
                                   variant="outline" 
                                   size="sm" 
-                                  className="h-8 border-slate-200 text-slate-600 rounded-xl px-3 font-semibold text-[11px] cursor-pointer hover:bg-slate-50 transition-colors"
+                                  className="h-8 border-slate-200 text-slate-600 rounded-lg px-3 font-semibold text-[11px] cursor-pointer hover:bg-slate-50 transition-colors"
                                 >
                                   Isi Data
                                 </Button>
@@ -684,7 +684,7 @@ export function MinatBakatClient({
             <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end">
               <Button 
                 onClick={() => setIsDetailOpen(false)}
-                className="bg-slate-800 hover:bg-slate-900 text-white rounded-xl h-10 px-6 cursor-pointer font-semibold text-sm shadow-xs"
+                className="bg-slate-800 hover:bg-slate-900 text-white rounded-lg h-10 px-6 cursor-pointer font-semibold text-sm shadow-xs"
               >
                 Tutup Analisis
               </Button>
@@ -711,14 +711,14 @@ export function MinatBakatClient({
                 <Button 
                   onClick={() => setIsDeleteOpen(false)}
                   variant="outline"
-                  className="w-full h-10 rounded-xl text-slate-600 border-slate-200 cursor-pointer font-semibold text-xs"
+                  className="w-full h-10 rounded-lg text-slate-600 border-slate-200 cursor-pointer font-semibold text-xs"
                 >
                   Batal
                 </Button>
                 <Button 
                   onClick={handleDeleteSubmit}
                   disabled={formLoading}
-                  className="w-full h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white cursor-pointer font-semibold text-xs"
+                  className="w-full h-10 rounded-lg bg-red-500 hover:bg-red-600 text-white cursor-pointer font-semibold text-xs"
                 >
                   {formLoading ? "Menghapus..." : "Hapus Data"}
                 </Button>

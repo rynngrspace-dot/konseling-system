@@ -96,3 +96,72 @@ export async function deleteNilai(siswaId: string, semester: number) {
     return { error: error.message || "Gagal menghapus nilai akademik." };
   }
 }
+
+export async function bulkUpsertNilai(
+  updates: {
+    siswaId: string;
+    semester: number;
+    scores: {
+      matematika: number | null;
+      indonesian: number | null;
+      english: number | null;
+      science: number | null;
+      social: number | null;
+    };
+  }[]
+) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      for (const update of updates) {
+        const { siswaId, semester, scores } = update;
+        const subjectsMap = [
+          { key: "Matematika", value: scores.matematika },
+          { key: "Bahasa Indonesia", value: scores.indonesian },
+          { key: "Bahasa Inggris", value: scores.english },
+          { key: "IPA", value: scores.science },
+          { key: "IPS", value: scores.social },
+        ];
+
+        for (const subj of subjectsMap) {
+          const existing = await tx.nilaiAkademik.findFirst({
+            where: {
+              siswaId,
+              semester,
+              mata_pelajaran: subj.key,
+            },
+          });
+
+          if (subj.value === null) {
+            if (existing) {
+              await tx.nilaiAkademik.delete({
+                where: { id: existing.id },
+              });
+            }
+          } else {
+            if (existing) {
+              await tx.nilaiAkademik.update({
+                where: { id: existing.id },
+                data: { nilai: subj.value },
+              });
+            } else {
+              await tx.nilaiAkademik.create({
+                data: {
+                  siswaId,
+                  semester,
+                  mata_pelajaran: subj.key,
+                  nilai: subj.value,
+                },
+              });
+            }
+          }
+        }
+      }
+    });
+
+    revalidatePath("/dashboard/bk/nilai-akademik");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error bulk upserting nilai:", error);
+    return { error: error.message || "Gagal menyimpan nilai massal." };
+  }
+}

@@ -2,7 +2,7 @@ export interface Siswa {
   id: string;
   nis: string;
   nama: string;
-  kelas: string;
+  kelas: string | null;
   jenis_kelamin: string;
 }
 
