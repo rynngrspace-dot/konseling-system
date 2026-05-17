@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum Role {
+  SISWA
+  GURU_BK
+  ADMIN
+}
+
+enum StatusKasus {
+  MENUNGGU
+  DIPROSES
+  SELESAI
+}
+
+enum KategoriKasus {
+  KONSELING
+  PELANGGARAN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      Role     @default(SISWA)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  siswa     Siswa?
+  guruBk    GuruBK?
+}
+
+model Siswa {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nis           String   @unique
+  nama          String
+  kelas         String
+  jenis_kelamin String
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  nilaiAkademik      NilaiAkademik[]
+  minatBakat         MinatBakat[]
+  riwayatKasus       RiwayatKasus[]
+  rekomendasiJurusan RekomendasiJurusan[]
+}
+
+model GuruBK {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nip       String   @unique
+  nama      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  riwayatKasusDicatat RiwayatKasus[]
+  rekomendasiDivalidasi RekomendasiJurusan[]
+}
+
+model NilaiAkademik {
+  id             String   @id @default(uuid())
+  siswaId        String
+  siswa          Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  semester       Int
+  mata_pelajaran String
+  nilai          Float
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MinatBakat {
+  id        String   @id @default(uuid())
+  siswaId   String
+  siswa     Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  minat     String
+  bakat     String
+  
+  // Menyimpan skor tes (Logika, Linguistik, dll) jika dibutuhkan dari UI
+  detailTes Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RiwayatKasus {
+  id          String   @id @default(uuid())
+  siswaId     String
+  siswa       Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guruId      String
+  guruBk      GuruBK   @relation(fields: [guruId], references: [id])
+  
+  tanggal     DateTime @default(now())
+  kategori    KategoriKasus @default(KONSELING)
+  jenis_kasus String
+  keterangan  String   @db.Text
+  status      StatusKasus @default(DIPROSES)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RekomendasiJurusan {
+  id                  String   @id @default(uuid())
+  siswaId             String
+  siswa               Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guruId              String?
+  guruBk              GuruBK?  @relation(fields: [guruId], references: [id])
+  
+  hasil_decision_tree String
+  hasil_naive_bayes   String
+  rekomendasi_akhir   String
+  
+  // Menyimpan detail % kecocokan (contoh: MIPA 92%, TKJ 85%)
+  detail_persentase   Json?
+  
+  tanggal             DateTime @default(now())
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
