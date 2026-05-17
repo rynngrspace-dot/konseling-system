@@ -105,10 +105,10 @@ export default async function SiswaDashboardPage() {
     latestCaseDateLabel = `Update terakhir: ${getRelativeTimeString(latestCase.updatedAt)}`;
     if (latestCase.status === "SELESAI") {
       latestStatus = "Selesai";
-      statusColor = "text-emerald-700 bg-emerald-50 border border-emerald-100";
+      statusColor = "text-blue-700 bg-blue-50 border border-blue-100";
     } else if (latestCase.status === "DIPROSES") {
       latestStatus = "Diproses";
-      statusColor = "text-blue-700 bg-blue-50 border border-blue-100";
+      statusColor = "text-cyan-700 bg-cyan-50 border border-cyan-100";
     } else {
       latestStatus = "Menunggu";
       statusColor = "text-amber-700 bg-amber-50 border border-amber-100";
@@ -139,8 +139,8 @@ export default async function SiswaDashboardPage() {
       title: `Rekomendasi Jurusan: ${latestRec.rekomendasi_akhir}`,
       time: getRelativeTimeString(latestRec.tanggal),
       icon: Star,
-      color: "text-amber-500",
-      bg: "bg-amber-50 border-amber-100/50",
+      color: "text-blue-500",
+      bg: "bg-blue-50 border-blue-100/50",
       timestamp: latestRec.tanggal
     });
   }
@@ -181,18 +181,18 @@ export default async function SiswaDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 p-8 text-white shadow-soft">
+      {/* Welcome Section - Soft Pastel Blue Gradient */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-400 via-sky-400 to-blue-500 p-8 text-white shadow-soft">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight animate-in-fade">Halo, {student.nama}! 👋</h1>
-            <p className="mt-2 text-sm font-medium text-emerald-50 opacity-90 max-w-lg animate-in-fade" style={{ animationDelay: '100ms' }}>
+            <p className="mt-2 text-sm font-medium text-blue-50 opacity-95 max-w-lg animate-in-fade" style={{ animationDelay: '100ms' }}>
               Senang melihatmu kembali. Di sini kamu bisa melihat ringkasan perkembangan bimbingan, catatan riwayat konseling, dan rekomendasi penjurusan belajarmu.
             </p>
           </div>
           <div className="flex gap-2 animate-in-fade" style={{ animationDelay: '200ms' }}>
             <Link href="/dashboard/siswa/riwayat-cases">
-              <Button variant="secondary" className="bg-white text-emerald-600 hover:bg-emerald-50 shadow-sm border-none font-bold rounded-lg cursor-pointer">
+              <Button variant="secondary" className="bg-white text-blue-600 hover:bg-blue-50 shadow-sm border-none font-bold rounded-lg cursor-pointer">
                 Riwayat Sesi Saya
               </Button>
             </Link>
@@ -201,13 +201,13 @@ export default async function SiswaDashboardPage() {
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10" />
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats - Styled with Pastel Light Blue */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="card-elegant border border-slate-100 shadow-2xs rounded-2xl bg-white">
+        <Card className="card-elegant border border-blue-100/50 shadow-xs rounded-2xl bg-gradient-to-br from-white to-blue-50/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Bimbingan</CardTitle>
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <FileText className="h-4 w-4 text-emerald-600" />
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <FileText className="h-4 w-4 text-blue-500" />
             </div>
           </CardHeader>
           <CardContent>
@@ -216,16 +216,16 @@ export default async function SiswaDashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="card-elegant border border-slate-100 shadow-2xs rounded-2xl bg-white">
+        <Card className="card-elegant border border-blue-100/50 shadow-xs rounded-2xl bg-gradient-to-br from-white to-blue-50/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Terakhir</CardTitle>
-            <div className="p-2 bg-slate-50 rounded-lg">
-              <CheckCircle2 className="h-4 w-4 text-slate-500" />
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-blue-500" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className={cn("text-lg font-extrabold px-3 py-1 rounded-lg", latestCase ? "shadow-2xs" : "")}>
+              <div className={cn("text-lg font-extrabold px-3 py-1 rounded-lg", latestCase ? statusColor : "text-slate-400 bg-slate-50 border border-slate-100")}>
                 <span className={cn("inline-block", latestCase ? "" : "text-slate-400 font-bold")}>
                   {latestStatus}
                 </span>
@@ -237,15 +237,15 @@ export default async function SiswaDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="card-elegant border border-slate-100 shadow-2xs rounded-2xl bg-white">
+        <Card className="card-elegant border border-blue-100/50 shadow-xs rounded-2xl bg-gradient-to-br from-white to-blue-50/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rekomendasi Jurusan</CardTitle>
-            <div className="p-2 bg-amber-50 rounded-lg">
-              <Star className="h-4 w-4 text-amber-500" />
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <Star className="h-4 w-4 text-indigo-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className={cn("text-xl font-extrabold", hasRec ? "text-amber-600" : "text-slate-400")}>
+            <div className={cn("text-xl font-extrabold", hasRec ? "text-indigo-600" : "text-slate-400")}>
               {recStatus}
             </div>
             <p className="text-[10px] font-bold text-slate-400 mt-2.5 uppercase tracking-wider truncate">
@@ -257,10 +257,10 @@ export default async function SiswaDashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Activity */}
-        <Card className="card-elegant border border-slate-100 shadow-2xs rounded-2xl bg-white">
+        <Card className="card-elegant border border-blue-100/50 shadow-xs rounded-2xl bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-extrabold text-slate-800 uppercase tracking-wider">
-              <Activity className="h-4.5 w-4.5 text-emerald-600" />
+              <Activity className="h-4.5 w-4.5 text-blue-500" />
               Aktivitas Terbaru Anda
             </CardTitle>
             <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Linimasa perkembangan akademik & bimbingan</CardDescription>
@@ -290,41 +290,41 @@ export default async function SiswaDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Future Path / Career */}
+        {/* Future Path / Career - Beautiful Pastel Blue Themed Card */}
         {hasRec ? (
-          <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden relative rounded-2xl">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Compass className="w-48 h-48 text-emerald-400 animate-spin-slow" />
+          <Card className="border border-blue-100 bg-gradient-to-br from-blue-50/80 via-sky-50/40 to-indigo-50/30 text-slate-800 overflow-hidden relative rounded-2xl shadow-xs">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Compass className="w-48 h-48 text-blue-400 animate-spin-slow" />
             </div>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-white text-xs font-extrabold uppercase tracking-widest">
-                <Compass className="h-4.5 w-4.5 text-emerald-400" />
+              <CardTitle className="flex items-center gap-2 text-slate-800 text-xs font-extrabold uppercase tracking-widest">
+                <Compass className="h-4.5 w-4.5 text-blue-500" />
                 Eksplorasi Karir Saya
               </CardTitle>
               <CardDescription className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Analisis rekomendasi masa depan oleh AI</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <p className="text-xs text-slate-300 leading-relaxed font-semibold">
-                Berdasarkan minat dominanmu di bidang <strong className="text-emerald-400 font-extrabold">{studentMinat}</strong> serta bakat alamimu dalam <strong className="text-emerald-400 font-extrabold">{studentBakat}</strong>, sistem AI memprediksi kamu sangat unggul untuk menempuh:
+              <p className="text-xs text-slate-600 leading-relaxed font-semibold">
+                Berdasarkan minat dominanmu di bidang <strong className="text-blue-600 font-extrabold">{studentMinat}</strong> serta bakat alamimu dalam <strong className="text-blue-600 font-extrabold">{studentBakat}</strong>, sistem AI memprediksi kamu sangat unggul untuk menempuh:
               </p>
               
               <div className="space-y-3 pt-1">
-                <div className="p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
+                <div className="p-3 bg-white/80 rounded-xl border border-blue-100/50 hover:bg-white transition-all shadow-2xs">
                   <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest block mb-1">Rekomendasi Utama:</span>
-                  <span className="text-xs font-extrabold text-emerald-400 block">{mainRec}</span>
+                  <span className="text-xs font-extrabold text-blue-600 block">{mainRec}</span>
                 </div>
 
                 {altRec && (
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="p-3 bg-white/80 rounded-xl border border-blue-100/50 hover:bg-white transition-all shadow-2xs">
                     <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest block mb-1">Rekomendasi Alternatif (Peringkat 2):</span>
-                    <span className="text-xs font-extrabold text-amber-400 block">{altRec}</span>
+                    <span className="text-xs font-extrabold text-indigo-600 block">{altRec}</span>
                   </div>
                 )}
               </div>
 
               <div className="pt-2">
                 <Link href="/dashboard/siswa/rekomendasi-jurusan" className="block">
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-lg text-xs transition-all border-0 shadow-lg shadow-emerald-500/10 cursor-pointer">
+                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold h-11 rounded-lg text-xs transition-all border-0 shadow-md shadow-blue-500/10 cursor-pointer">
                     Lihat Analisis Detail & Persentase
                   </Button>
                 </Link>
@@ -332,29 +332,29 @@ export default async function SiswaDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden relative rounded-2xl">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Compass className="w-48 h-48 text-slate-400" />
+          <Card className="border border-blue-100 bg-gradient-to-br from-blue-50/80 via-sky-50/40 to-indigo-50/30 text-slate-800 overflow-hidden relative rounded-2xl shadow-xs">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Compass className="w-48 h-48 text-blue-400" />
             </div>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-white text-xs font-extrabold uppercase tracking-widest">
-                <Compass className="h-4.5 w-4.5 text-slate-400" />
+              <CardTitle className="flex items-center gap-2 text-slate-800 text-xs font-extrabold uppercase tracking-widest">
+                <Compass className="h-4.5 w-4.5 text-blue-500" />
                 Eksplorasi Karir Saya
               </CardTitle>
               <CardDescription className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Masa depanmu dimulai di sini</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+              <p className="text-xs text-slate-600 leading-relaxed font-semibold">
                 Rekomendasi jurusan resmi Anda sedang diproses oleh Guru Bimbingan Konseling (BK).
               </p>
-              <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
-                <p className="text-[10px] text-slate-300 font-semibold leading-relaxed">
+              <div className="p-4 bg-white/80 border border-blue-100/50 rounded-xl shadow-2xs">
+                <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
                   💡 **Catatan BK**: Siswa wajib melengkapi seluruh data **Nilai Rapor** dan **Evaluasi Minat & Bakat** di portal BK sebelum Guru BK dapat menjalankan sistem klasifikasi AI.
                 </p>
               </div>
               <div className="pt-2">
                 <Link href="/dashboard/siswa/riwayat-cases" className="block">
-                  <Button className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold h-11 rounded-lg text-xs transition-all border-0 cursor-pointer">
+                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold h-11 rounded-lg text-xs transition-all border-0 shadow-md shadow-blue-500/10 cursor-pointer">
                     Lihat Aktivitas Bimbingan Saya
                   </Button>
                 </Link>
