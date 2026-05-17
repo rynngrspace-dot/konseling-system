@@ -107,7 +107,7 @@ export function MobileDrawer({
                       </div>
                       <ul className="flex flex-col gap-1 ml-2 pl-3 border-l-2 border-border/40">
                         {link.items?.map((sub, sIdx) => {
-                          const isSubActive = pathname === sub.href;
+                          const isSubActive = pathname === sub.href || (sub.href !== '/dashboard/bk' && sub.href !== '/dashboard/siswa' && pathname.startsWith(sub.href));
                           const SubIcon = sub.icon;
                           return (
                             <li key={`sub-${idx}-${sIdx}`}>

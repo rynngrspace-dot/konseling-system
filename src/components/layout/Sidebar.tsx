@@ -103,8 +103,10 @@ export function Sidebar({
 function SidebarItem({ link, isCollapsed, pathname }: { link: NavLink, isCollapsed: boolean, pathname: string }) {
   const hasItems = !!link.items && link.items.length > 0;
   
-  // Check if any sub-item is active
-  const isAnyChildActive = hasItems && link.items?.some(item => pathname === item.href);
+  // Check if any sub-item is active (supporting subpages)
+  const isAnyChildActive = hasItems && link.items?.some(item => 
+    pathname === item.href || (item.href !== '/dashboard/bk' && item.href !== '/dashboard/siswa' && pathname.startsWith(item.href))
+  );
   const isCurrentActive = link.href ? (pathname === link.href || (link.href !== '/dashboard/bk' && link.href !== '/dashboard/siswa' && pathname.startsWith(link.href))) : false;
   const isActive = isCurrentActive || isAnyChildActive;
 
@@ -118,7 +120,7 @@ function SidebarItem({ link, isCollapsed, pathname }: { link: NavLink, isCollaps
           </div>
           <ul className="flex flex-col gap-1.5">
             {link.items!.map((sub, sIdx) => {
-              const isSubActive = pathname === sub.href;
+              const isSubActive = pathname === sub.href || (sub.href !== '/dashboard/bk' && sub.href !== '/dashboard/siswa' && pathname.startsWith(sub.href));
               return (
                 <li key={sIdx}>
                   <Tooltip delayDuration={0}>
@@ -180,7 +182,7 @@ function SidebarItem({ link, isCollapsed, pathname }: { link: NavLink, isCollaps
           </div>
           <ul className="flex flex-col gap-1 pl-2 border-l border-border/50 ml-2">
             {link.items?.map((sub, sIdx) => {
-              const isSubActive = pathname === sub.href;
+              const isSubActive = pathname === sub.href || (sub.href !== '/dashboard/bk' && sub.href !== '/dashboard/siswa' && pathname.startsWith(sub.href));
               return (
                 <li key={sIdx}>
                   <Link
