@@ -53,8 +53,20 @@ export default function LoginForm() {
       <div className="w-full max-w-[380px] space-y-6 animate-in-fade">
         {/* Logo Section */}
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-            <BookOpenCheck className="h-7 w-7" />
+          <div className="flex h-16 w-16 items-center justify-center bg-transparent overflow-hidden">
+            <img
+              src="/assets/images/logo.png"
+              alt="Logo SMP Bina Karya"
+              className="h-16 w-16 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback");
+                if (fallback) fallback.classList.remove("hidden");
+              }}
+            />
+            <div className="logo-fallback hidden flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <BookOpenCheck className="h-7 w-7" />
+            </div>
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-bold tracking-tight text-foreground">

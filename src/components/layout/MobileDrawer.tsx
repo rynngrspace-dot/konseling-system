@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { cn } from "@/lib/utils";
 import type { NavLink } from "@/constants/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,15 @@ export function MobileDrawer({
   onLogout,
 }: MobileDrawerProps) {
   const pathname = usePathname();
+  const [logoError, setLogoError] = useState(false);
 
-  // Close on route change
+  // Close only when pathname actually changes
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    onClose();
+    if (prevPathname.current !== pathname) {
+      onClose();
+      prevPathname.current = pathname;
+    }
   }, [pathname, onClose]);
 
   // Lock scroll
@@ -61,9 +66,18 @@ export function MobileDrawer({
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-5 shrink-0 bg-background/50 backdrop-blur-md">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <BookOpenCheck className="h-4 w-4" />
-            </div>
+            {!logoError ? (
+              <img
+                src="/assets/images/logo.png"
+                alt="Logo SMP Bina Karya"
+                className="h-7 w-7 object-contain shrink-0"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+                <BookOpenCheck className="h-4 w-4" />
+              </div>
+            )}
             <span className="text-xs font-bold leading-tight tracking-tight text-sidebar-foreground line-clamp-2">SMP Bina Karya Ngamprah</span>
           </div>
           <Button

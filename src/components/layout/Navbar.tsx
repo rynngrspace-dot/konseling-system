@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -49,6 +50,7 @@ export function Navbar({
   onLogout,
 }: NavbarProps) {
   const isAdmin = role === "bk";
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 shrink-0 print:hidden">
@@ -111,51 +113,59 @@ export function Navbar({
           )}
         </div>
 
-        {/* Avatar */}
-        <Avatar
-          className={cn(
-            "h-9 w-9 border shadow-sm",
-            isAdmin ? "border-blue-100" : "border-emerald-100"
-          )}
-        >
-          {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
-          <AvatarFallback
+        {/* Avatar with Dropdown */}
+        <div className="relative">
+          <Avatar
             className={cn(
-              "text-white text-sm font-semibold",
-              isAdmin ? "bg-primary" : "bg-emerald-500"
+              "h-9 w-9 border shadow-sm cursor-pointer hover:opacity-90 transition-opacity",
+              isAdmin ? "border-blue-100" : "border-emerald-100",
+              isProfileOpen ? "ring-2 ring-primary/20" : ""
             )}
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
           >
-            {getInitials(userName)}
-          </AvatarFallback>
-        </Avatar>
-
-        {/* Separator (Siswa style) */}
-        {!isAdmin && (
-          <div className="hidden sm:block h-8 w-px bg-border/60 mx-1" />
-        )}
-
-        {/* Logout Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
+            {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
+            <AvatarFallback
               className={cn(
-                "text-muted-foreground transition-all duration-300 rounded-lg",
-                isAdmin 
-                  ? "hover:text-primary hover:bg-primary/10" 
-                  : "hover:text-emerald-600 hover:bg-emerald-50"
+                "text-white text-sm font-semibold",
+                isAdmin ? "bg-primary" : "bg-emerald-500"
               )}
-              onClick={onLogout}
-              aria-label="Logout"
             >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {isAdmin ? "Logout" : "Keluar Aplikasi"}
-          </TooltipContent>
-        </Tooltip>
+              {getInitials(userName)}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* Profile Dropdown Menu */}
+          {isProfileOpen && (
+            <>
+              {/* Click-outside backdrop */}
+              <div
+                className="fixed inset-0 z-40 bg-transparent"
+                onClick={() => setIsProfileOpen(false)}
+              />
+              {/* Dropdown Menu Box */}
+              <div className="absolute right-0 mt-2.5 w-48 rounded-xl border border-slate-100 bg-white p-1 shadow-lg shadow-slate-100/50 z-50 ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-2 text-xs border-b border-slate-100 text-slate-700">
+                  <p className="font-bold text-slate-800 truncate">{userName}</p>
+                  {extraInfo && (
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                      {role === "siswa" ? `NISN: ${extraInfo}` : extraInfo}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    onLogout();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors mt-1"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

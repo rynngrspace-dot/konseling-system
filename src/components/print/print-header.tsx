@@ -16,15 +16,38 @@ export function PrintHeader({
   return (
     <>
       {/* ── PRINT-ONLY LETTERHEAD (KOP SURAT) ────────────────────────────────── */}
-      <div className="hidden print:block text-center border-b-2 border-slate-800 pb-3 mb-4">
-        <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">PEMERINTAH KABUPATEN BANDUNG BARAT</h2>
-        <h1 className="text-base font-black uppercase tracking-widest text-slate-900 mt-0.5">SMP BINA KARYA NGAMPRAH</h1>
-        <p className="text-[9px] text-slate-500 font-semibold mt-0.5">
-          Jl. Raya Ngamprah No.123, Kec. Ngamprah, Kabupaten Bandung Barat, Jawa Barat 40552
-        </p>
-        <p className="text-[8px] text-slate-400 font-medium mt-0.5">
-          Email: info@smpbinakaryangamprah.sch.id | Telp: (022) 86861234
-        </p>
+      <div className="hidden print:block relative border-b-2 border-slate-800 pb-1 mb-4 text-slate-900 min-h-[80px]">
+        {/* Logo absolutely positioned on the left */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-start">
+          <img
+            src="/assets/images/logo.png"
+            alt="Logo YPM Pancasila"
+            className="h-20 w-20 object-contain"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback");
+              if (fallback) fallback.classList.remove("hidden");
+            }}
+          />
+        </div>
+
+        {/* Centered Text */}
+        <div className="text-center w-full px-20 pt-3">
+          <h2 className="text-[11px] font-bold uppercase tracking-wide leading-tight">
+            YAYASAN PENDIDIKAN MUSLIM ( YPM ) PANCASILA
+          </h2>
+
+          <h1 className="text-sm font-black uppercase tracking-wider leading-tight mt-1">
+            SMP BINA KARYA NGAMPRAH
+          </h1>
+          <p className="text-[7.5px] font-semibold uppercase tracking-tight leading-tight mt-0.5">
+            NSS : 202020831290 NPSN : 20252485
+          </p>
+          <p className="text-[7px] font-medium leading-normal mt-1">
+            Jalan Pangkalan Desa Cimanggu Kec. Ngamprah Kab. Bandung Barat Telp. 081322168626 Kode Pos 40552{" "}
+            <span className="text-blue-600 font-semibold underline">E-mail: smpbinakarya@yahoo.com</span>
+          </p>
+        </div>
       </div>
 
       {/* ── PRINT-ONLY TITLE & ACTIVE FILTER CONTEXT ─────────────────────────── */}

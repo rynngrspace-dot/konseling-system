@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function Sidebar({
   onLogout,
 }: SidebarProps) {
   const pathname = usePathname();
+  const [logoError, setLogoError] = useState(false);
 
   return (
     <aside
@@ -43,12 +45,20 @@ export function Sidebar({
           isCollapsed ? "justify-center" : "justify-start gap-3"
         )}
       >
-        <div className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300",
-          isCollapsed ? "shadow-sm" : ""
-        )}>
-          <BookOpenCheck className="h-5 w-5" />
-        </div>
+        {!logoError ? (
+          <img
+            src="/assets/images/logo.png"
+            alt="Logo SMP Bina Karya"
+            className="h-8 w-8 object-contain shrink-0 transition-transform duration-300 hover:scale-105"
+            onError={() => setLogoError(true)}
+          />
+        ) : (
+          <div className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-all duration-300"
+          )}>
+            <BookOpenCheck className="h-4.5 w-4.5" />
+          </div>
+        )}
         {!isCollapsed && (
           <span className="text-sm font-bold leading-tight tracking-tight text-sidebar-foreground animate-in-fade line-clamp-2">
             SMP Bina Karya Ngamprah
