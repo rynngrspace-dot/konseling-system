@@ -68,7 +68,7 @@ export function MobileDrawer({
           <div className="flex items-center gap-2.5">
             {!logoError ? (
               <img
-                src="/assets/images/logo.png"
+                src="/assets/images/Logo.png"
                 alt="Logo SMP Bina Karya"
                 className="h-7 w-7 object-contain shrink-0"
                 onError={() => setLogoError(true)}

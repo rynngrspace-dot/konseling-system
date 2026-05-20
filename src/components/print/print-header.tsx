@@ -20,7 +20,7 @@ export function PrintHeader({
         {/* Logo absolutely positioned on the left */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-start">
           <img
-            src="/assets/images/logo.png"
+            src="/assets/images/Logo.png"
             alt="Logo YPM Pancasila"
             className="h-20 w-20 object-contain"
             onError={(e) => {

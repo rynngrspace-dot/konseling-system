@@ -47,7 +47,7 @@ export function Sidebar({
       >
         {!logoError ? (
           <img
-            src="/assets/images/logo.png"
+            src="/assets/images/Logo.png"
             alt="Logo SMP Bina Karya"
             className="h-8 w-8 object-contain shrink-0 transition-transform duration-300 hover:scale-105"
             onError={() => setLogoError(true)}

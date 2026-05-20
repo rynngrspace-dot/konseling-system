@@ -13,15 +13,15 @@ export function PrintFooter() {
         <p className="font-medium">Mengetahui,</p>
         <p className="font-extrabold uppercase mt-0.5">Kepala SMP Bina Karya Ngamprah</p>
         <div className="h-16" />
-        <p className="font-bold underline">H. Mulyana, S.Pd., M.M.Pd.</p>
-        <p className="text-[8px] text-slate-500">NIP. 197208151998021003</p>
+        <p className="font-bold underline">Latifah Wisudawati, S. Kom</p>
+        <p className="text-[8px] text-slate-500">NUPTK. 6737763664210182</p>
       </div>
       <div>
         <p className="font-medium">Ngamprah, {currentDateFormatted}</p>
         <p className="font-extrabold uppercase mt-0.5">Guru Bimbingan Konseling</p>
         <div className="h-16" />
-        <p className="font-bold underline">Dra. Hj. Siti Aminah, M.Pd.</p>
-        <p className="text-[8px] text-slate-500">NIP. 197504202005012002</p>
+        <p className="font-bold underline">Mulziara Filzian</p>
+        {/* <p className="text-[8px] text-slate-500">NIP. 197504202005012002</p> */}
       </div>
     </div>
   );

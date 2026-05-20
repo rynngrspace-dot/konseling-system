@@ -55,7 +55,7 @@ export default function LoginForm() {
         <div className="flex flex-col items-center text-center space-y-3">
           <div className="flex h-16 w-16 items-center justify-center bg-transparent overflow-hidden">
             <img
-              src="/assets/images/logo.png"
+              src="/assets/images/Logo.png"
               alt="Logo SMP Bina Karya"
               className="h-16 w-16 object-contain"
               onError={(e) => {
