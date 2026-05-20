@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
+
 interface PrintHeaderProps {
   studentFilter: string;
   startDate: string;
@@ -13,22 +16,25 @@ export function PrintHeader({
   endDate,
   formatDateIndo,
 }: PrintHeaderProps) {
+  const [logoError, setLogoError] = useState(false);
+
   return (
     <>
       {/* ── PRINT-ONLY LETTERHEAD (KOP SURAT) ────────────────────────────────── */}
       <div className="hidden print:block relative border-b-2 border-slate-800 pb-1 mb-4 text-slate-900 min-h-[80px]">
         {/* Logo absolutely positioned on the left */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-start">
-          <img
-            src="/assets/images/Logo.png"
-            alt="Logo YPM Pancasila"
-            className="h-20 w-20 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback");
-              if (fallback) fallback.classList.remove("hidden");
-            }}
-          />
+          {!logoError && (
+            <Image
+              src="/assets/images/Logo.png"
+              alt="Logo YPM Pancasila"
+              width={80}
+              height={80}
+              className="h-20 w-20 object-contain"
+              priority
+              onError={() => setLogoError(true)}
+            />
+          )}
         </div>
 
         {/* Centered Text */}

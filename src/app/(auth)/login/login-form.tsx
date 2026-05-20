@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -22,6 +23,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,19 +56,21 @@ export default function LoginForm() {
         {/* Logo Section */}
         <div className="flex flex-col items-center text-center space-y-3">
           <div className="flex h-16 w-16 items-center justify-center bg-transparent overflow-hidden">
-            <img
-              src="/assets/images/Logo.png"
-              alt="Logo SMP Bina Karya"
-              className="h-16 w-16 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback");
-                if (fallback) fallback.classList.remove("hidden");
-              }}
-            />
-            <div className="logo-fallback hidden flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <BookOpenCheck className="h-7 w-7" />
-            </div>
+            {!logoError ? (
+              <Image
+                src="/assets/images/Logo.png"
+                alt="Logo SMP Bina Karya"
+                width={64}
+                height={64}
+                className="h-16 w-16 object-contain"
+                priority
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+                <BookOpenCheck className="h-7 w-7" />
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-bold tracking-tight text-foreground">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -46,9 +47,11 @@ export function Sidebar({
         )}
       >
         {!logoError ? (
-          <img
+          <Image
             src="/assets/images/Logo.png"
             alt="Logo SMP Bina Karya"
+            width={32}
+            height={32}
             className="h-8 w-8 object-contain shrink-0 transition-transform duration-300 hover:scale-105"
             onError={() => setLogoError(true)}
           />
