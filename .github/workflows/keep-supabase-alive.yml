@@ -2,8 +2,8 @@ name: Keep Supabase Awake
 
 on:
   schedule:
-    # Run at 00:00 UTC every 3 days (Supabase pauses free tier after 7 days of inactivity)
-    - cron: '0 0 */3 * *'
+    # Run daily at 00:00 UTC (Supabase pauses free tier after 7 days of inactivity; daily runs are highly reliable against GitHub Actions cron delays)
+    - cron: '0 0 * * *'
   workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
 
 jobs:
@@ -11,18 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install pg client driver
-        run: npm install pg --no-save
-
       - name: Ping Database to Prevent Pause
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/ping-db.js
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is missing in GitHub repository settings!"
+            echo "Please add it in: Settings -> Secrets and variables -> Actions -> Repository secrets"
+            exit 1
+          fi
+          echo "Connecting to Supabase Database..."
+          psql "$DATABASE_URL" -c "SELECT 1 as alive;"
+          echo "Ping successful! Supabase Database is officially KEPT AWAKE! 🎉"
