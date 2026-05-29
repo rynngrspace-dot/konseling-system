@@ -26,7 +26,7 @@ export default async function MinatBakatPage({
   }
 
   if (kelas && kelas !== "all") {
-    where.kelas = kelas;
+    where.kelas = { startsWith: kelas };
   }
 
   // Fetch total count matching criteria for pagination
