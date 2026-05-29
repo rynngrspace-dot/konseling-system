@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sistem Konseling & BK",
   description: "Platform manajemen bimbingan konseling untuk Admin BK dan Siswa.",
+  icons: {
+    icon: "/assets/images/Logo.png",
+  },
 };
 
 export default function RootLayout({
