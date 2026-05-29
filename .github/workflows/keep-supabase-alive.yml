@@ -21,5 +21,7 @@ jobs:
             exit 1
           fi
           echo "Connecting to Supabase Database..."
-          psql "$DATABASE_URL" -c "SELECT 1 as alive;"
+          # Strip query parameters (like ?pgbouncer=true) which psql doesn't support
+          CLEAN_URL=$(echo "$DATABASE_URL" | cut -d'?' -f1)
+          psql "$CLEAN_URL" -c "SELECT 1 as alive;"
           echo "Ping successful! Supabase Database is officially KEPT AWAKE! 🎉"
