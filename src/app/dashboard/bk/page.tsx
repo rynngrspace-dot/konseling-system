@@ -21,17 +21,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BKChart } from "@/components/bk-chart";
 
 export const dynamic = "force-dynamic";
 
 export default async function BKDashboardPage() {
   // 1. Fetch Dynamic Statistics from Database
   const totalSiswa = await prisma.siswa.count();
-  
+
   const konselingAktif = await prisma.riwayatKasus.count({
     where: { status: "DIPROSES" }
   });
-  
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const kasusBaru = await prisma.riwayatKasus.count({
@@ -54,6 +55,55 @@ export default async function BKDashboardPage() {
     include: { siswa: true },
   });
 
+  // 3. Fetch Case Distributions for BKChart
+  const casesByCategoryRaw = await prisma.riwayatKasus.groupBy({
+    by: ["kategori"],
+    _count: {
+      _all: true
+    }
+  });
+
+  const casesByStatusRaw = await prisma.riwayatKasus.groupBy({
+    by: ["status"],
+    _count: {
+      _all: true
+    }
+  });
+
+  const categoryColors: Record<string, string> = {
+    KONSELING: "#3b82f6", // blue-500
+    PELANGGARAN: "#f43f5e", // rose-500
+  };
+
+  const statusColors: Record<string, string> = {
+    SELESAI: "#10b981", // emerald-500
+    DIPROSES: "#3b82f6", // blue-500
+    MENUNGGU: "#f59e0b", // amber-500
+  };
+
+  const categoryNames: Record<string, string> = {
+    KONSELING: "Bimbingan Konseling",
+    PELANGGARAN: "Kasus Pelanggaran",
+  };
+
+  const statusNames: Record<string, string> = {
+    SELESAI: "Selesai",
+    DIPROSES: "Diproses",
+    MENUNGGU: "Menunggu",
+  };
+
+  const categoryChartData = casesByCategoryRaw.map((item) => ({
+    name: categoryNames[item.kategori] || item.kategori,
+    value: item._count._all,
+    color: categoryColors[item.kategori] || "#64748b",
+  }));
+
+  const statusChartData = casesByStatusRaw.map((item) => ({
+    name: statusNames[item.status] || item.status,
+    value: item._count._all,
+    color: statusColors[item.status] || "#64748b",
+  }));
+
   const recentMinatBakat = await prisma.minatBakat.findMany({
     take: 3,
     orderBy: { createdAt: "desc" },
@@ -75,8 +125,8 @@ export default async function BKDashboardPage() {
       status: "Selesai",
     }))
   ]
-  .sort((a, b) => b.time.getTime() - a.time.getTime())
-  .slice(0, 4);
+    .sort((a, b) => b.time.getTime() - a.time.getTime())
+    .slice(0, 4);
 
   // Fallbacks if database has no records yet
   const activities = combinedActivities.length > 0 ? combinedActivities : [
@@ -147,7 +197,7 @@ export default async function BKDashboardPage() {
     const diffMs = Date.now() - new Date(dateInput).getTime();
     const diffMins = Math.floor(diffMs / (60 * 1000));
     const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-    
+
     if (diffMins < 60) {
       return `${Math.max(1, diffMins)} menit yang lalu`;
     } else if (diffHours < 24) {
@@ -215,17 +265,11 @@ export default async function BKDashboardPage() {
               <MoreVertical className="h-4 w-4 text-slate-400" />
             </Button>
           </CardHeader>
-          <CardContent className="flex-1">
-            <div className="relative h-[260px] w-full flex items-center justify-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 overflow-hidden group">
-              <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-center relative z-10 p-6">
-                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-slate-100 shadow-xs">
-                  <Activity className="h-5 w-5 text-blue-500 animate-pulse" />
-                </div>
-                <p className="text-xs text-slate-700 font-bold tracking-tight">Koneksi Dashboard Aktif</p>
-                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-semibold">Menghubungkan ke Mesin Analitik Sekolah...</p>
-              </div>
-            </div>
+          <CardContent className="flex-1 pb-6">
+            <BKChart
+              categoryData={categoryChartData}
+              statusData={statusChartData}
+            />
           </CardContent>
         </Card>
 
@@ -251,8 +295,8 @@ export default async function BKDashboardPage() {
                   )}
                   <div className={cn(
                     "mt-1.5 h-[20px] w-[20px] rounded-full border-4 border-white shadow-xs z-10 transition-all duration-300 group-hover:scale-110",
-                    activity.status === 'Selesai' ? 'bg-emerald-500' : 
-                    activity.status === 'Menunggu' ? 'bg-amber-400' : 'bg-blue-500'
+                    activity.status === 'Selesai' ? 'bg-emerald-500' :
+                      activity.status === 'Menunggu' ? 'bg-amber-400' : 'bg-blue-500'
                   )} />
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
@@ -270,8 +314,8 @@ export default async function BKDashboardPage() {
                     <div className="pt-1">
                       <span className={cn(
                         "text-[9px] px-2.5 py-0.5 rounded-lg border font-extrabold tracking-wider uppercase",
-                        activity.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : 
-                        activity.status === 'Menunggu' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-blue-50 text-blue-600 border-blue-100/50'
+                        activity.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' :
+                          activity.status === 'Menunggu' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-blue-50 text-blue-600 border-blue-100/50'
                       )}>
                         {activity.status}
                       </span>
@@ -280,7 +324,7 @@ export default async function BKDashboardPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-6 p-4 rounded-2xl bg-slate-800 text-white shadow-sm relative overflow-hidden group">
               <div className="relative z-10">
                 <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Tips Bimbingan Konseling</p>
